@@ -16,8 +16,8 @@ const quote = "Leading Innovations, Transforming Lives, Building the Nation.";
 
 // --- IMAGES ---
 // These paths now look inside the 'public' folder automatically
-const profileLight = '/profile.jpg';      
-const profileDark = '/profile-dark.jpg';  
+const profileLight = '/profile.png';      
+const profileDark = '/profile-dark.png'; 
 
 // --- ROUTES ---
 app.get('/', (req, res) => { res.send(renderHome()); });
