@@ -1,5 +1,5 @@
 const express = require('express');
-const path = require('path'); // <--- ADDED THIS (Critical Fix)
+const path = require('path');
 const app = express();
 const port = process.env.PORT || 3000;
 
@@ -17,7 +17,7 @@ const quote = "Leading Innovations, Transforming Lives, Building the Nation.";
 // --- IMAGES ---
 // These paths now look inside the 'public' folder automatically
 const profileLight = '/profile.png';      
-const profileDark = '/profile-dark.png'; 
+const profileDark = '/profile-dark.png';  
 
 // --- ROUTES ---
 app.get('/', (req, res) => { res.send(renderHome()); });
@@ -169,6 +169,17 @@ function renderHome() {
             <div class="project-grid">
                 <a href="#" class="project-card">
                     <div class="project-top">
+                        <h3>CET Tracker PH</h3>
+                        <span class="job-year">Web App</span>
+                    </div>
+                    <p>Track College Entrance Test schedules, requirements, and announcements for top PH universities.</p>
+                    <div class="tags-wrapper" style="margin-top:0.5rem">
+                        <span class="tag-sm">Next.js</span><span class="tag-sm">Supabase</span>
+                    </div>
+                </a>
+
+                <a href="#" class="project-card">
+                    <div class="project-top">
                         <h3>PDAO Analytics Portal</h3>
                         <span class="job-year">pdaohelps.gov.ph</span>
                     </div>
@@ -281,6 +292,17 @@ function renderTechStack() {
 function renderProjects() {
     return renderInnerPage("Recent Projects", `
         <div class="project-grid">
+            <div class="project-card">
+                <div class="project-top"><h3>CET Tracker PH</h3><span class="job-year">Web App</span></div>
+                <p>A comprehensive tracking system for College Entrance Tests (CETs) in the Philippines. Features include real-time announcements, university requirements database, and an admin dashboard for content management.</p>
+                <div class="tags-wrapper" style="margin-top:1rem">
+                    <span class="tag">Next.js</span>
+                    <span class="tag">TypeScript</span>
+                    <span class="tag">Supabase</span>
+                    <span class="tag">Tailwind</span>
+                </div>
+            </div>
+
             <div class="project-card">
                 <div class="project-top"><h3>PDAO Analytics Portal</h3><span class="job-year">Government</span></div>
                 <p>A comprehensive system for the Persons with Disability Affairs Office. Features include client data management, GIS mapping for demographic analysis, and automated reporting.</p>
