@@ -170,7 +170,7 @@ function renderHome() {
                 <a href="#" class="project-card">
                     <div class="project-top">
                         <h3>Holiday Hunter</h3>
-                        <span class="job-year">Analytics</span>
+                        <span class="job-year">holiday-hunter.vercel.app</span>
                     </div>
                     <p>Interactive dashboard analyzing global public holidays to find the "laziest" countries and best party months.</p>
                     <div class="tags-wrapper" style="margin-top:0.5rem">
@@ -181,7 +181,7 @@ function renderHome() {
                 <a href="#" class="project-card">
                     <div class="project-top">
                         <h3>CET Tracker PH</h3>
-                        <span class="job-year">Web App</span>
+                        <span class="job-year">cet-tracker-app.vercel.app</span>
                     </div>
                     <p>Track College Entrance Test schedules, requirements, and announcements for top PH universities.</p>
                     <div class="tags-wrapper" style="margin-top:0.5rem">
