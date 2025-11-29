@@ -169,6 +169,17 @@ function renderHome() {
             <div class="project-grid">
                 <a href="#" class="project-card">
                     <div class="project-top">
+                        <h3>Holiday Hunter</h3>
+                        <span class="job-year">Analytics</span>
+                    </div>
+                    <p>Interactive dashboard analyzing global public holidays to find the "laziest" countries and best party months.</p>
+                    <div class="tags-wrapper" style="margin-top:0.5rem">
+                        <span class="tag-sm">Next.js</span><span class="tag-sm">Recharts</span>
+                    </div>
+                </a>
+
+                <a href="#" class="project-card">
+                    <div class="project-top">
                         <h3>CET Tracker PH</h3>
                         <span class="job-year">Web App</span>
                     </div>
@@ -186,16 +197,6 @@ function renderHome() {
                     <p>Full-stack system with GIS mapping and analytics dashboard for government use.</p>
                     <div class="tags-wrapper" style="margin-top:0.5rem">
                         <span class="tag-sm">PHP</span><span class="tag-sm">MySQL</span>
-                    </div>
-                </a>
-                <a href="#" class="project-card">
-                    <div class="project-top">
-                        <h3>THEEA UI Kit</h3>
-                        <span class="job-year">figma.com</span>
-                    </div>
-                    <p>High-fidelity prototypes and design system for an Australian tech agency.</p>
-                    <div class="tags-wrapper" style="margin-top:0.5rem">
-                        <span class="tag-sm">Figma</span><span class="tag-sm">UI/UX</span>
                     </div>
                 </a>
             </div>
@@ -292,6 +293,14 @@ function renderTechStack() {
 function renderProjects() {
     return renderInnerPage("Recent Projects", `
         <div class="project-grid">
+            <div class="project-card">
+                <div class="project-top"><h3>Holiday Hunter</h3><span class="job-year">Web App</span></div>
+                <p>A data visualization platform that gamifies global holiday tracking. Fetches real-time data to rank countries by holiday count (Laziness Leaderboard), visualizes monthly distributions, and tracks upcoming breaks worldwide.</p>
+                <div class="tags-wrapper" style="margin-top:1rem">
+                    <span class="tag">Next.js</span><span class="tag">Tailwind</span><span class="tag">API Integration</span><span class="tag">Recharts</span>
+                </div>
+            </div>
+
             <div class="project-card">
                 <div class="project-top"><h3>CET Tracker PH</h3><span class="job-year">Web App</span></div>
                 <p>A comprehensive tracking system for College Entrance Tests (CETs) in the Philippines. Features include real-time announcements, university requirements database, and an admin dashboard for content management.</p>
