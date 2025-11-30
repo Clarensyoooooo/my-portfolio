@@ -93,7 +93,7 @@ function renderHome(projects) {
             <header class="header-block">
                 <div class="header-top">
                     <div class="profile-left">
-                        <img id="profile-pic" src="/profile.png" alt="Profile" class="avatar">
+                        <img id="profile-pic" src="/profile.png" alt="Profile" class="avatar" onerror="this.src='https://ui-avatars.com/api/?name=Clarence+Meneses&background=1A73E8&color=fff&size=200'">
                         <div class="profile-details">
                             <h1>${name} <i data-feather="check-circle" class="verified-icon"></i></h1>
                             <div class="location"><i data-feather="map-pin" size="14"></i> ${location}</div>
@@ -126,6 +126,8 @@ function renderHome(projects) {
                         <div class="card-title"><i data-feather="user"></i> About</div>
                         <p>
                             I'm a full-stack IT student specializing in developing solutions with JavaScript, PHP, and Python. I work on projects including building modern web applications, data analytics dashboards, and system testing.
+                            <br><br>
+                            Lately, I've been diving deeper into the world of Data Analytics using Power BI and integrating GIS mapping into web systems.
                         </p>
                     </div>
 
@@ -136,12 +138,20 @@ function renderHome(projects) {
                         </div>
                         <div class="stack-category">Frontend</div>
                         <div class="tags-wrapper">
-                            <span class="tag">JavaScript</span><span class="tag">HTML5</span><span class="tag">CSS3</span><span class="tag">Bootstrap</span>
+                            <span class="tag">JavaScript</span><span class="tag">HTML5</span><span class="tag">CSS3</span><span class="tag">Bootstrap</span><span class="tag">Figma</span>
                         </div>
                         <div class="stack-category">Backend & Data</div>
                         <div class="tags-wrapper">
                             <span class="tag">PHP</span><span class="tag">MySQL</span><span class="tag">Python</span><span class="tag">Power BI</span>
                         </div>
+                    </div>
+
+                     <div class="card">
+                        <div class="card-title"><i data-feather="coffee"></i> Beyond Coding</div>
+                        <p>When not writing code, I focus on:</p>
+                         <div class="tags-wrapper">
+                            <span class="tag">Digital Art</span><span class="tag">Analytics</span><span class="tag">Startup Culture</span><span class="tag">Learning New Tech Stuff</span>
+                         </div>
                     </div>
                 </div>
 
@@ -164,8 +174,32 @@ function renderHome(projects) {
                         <div class="timeline-item">
                             <div class="timeline-dot"></div>
                             <div class="timeline-content">
+                                <div class="job-role">Freelance UI Designer</div>
+                                <div class="job-company">THEEA Agency (Australia)</div>
+                                <div class="job-year">2025</div>
+                            </div>
+                        </div>
+                        <div class="timeline-item">
+                            <div class="timeline-dot"></div>
+                            <div class="timeline-content">
+                                <div class="job-role">Commissioned Artist</div>
+                                <div class="job-company">Freelance (US Clients)</div>
+                                <div class="job-year">2024</div>
+                            </div>
+                        </div>
+                        <div class="timeline-item">
+                            <div class="timeline-dot"></div>
+                            <div class="timeline-content">
                                 <div class="job-role">Student</div>
                                 <div class="job-company">Batangas State University</div>
+                                <div class="job-year">2022</div>
+                            </div>
+                        </div>
+                         <div class="timeline-item">
+                            <div class="timeline-dot"></div>
+                            <div class="timeline-content">
+                                <div class="job-role">Hello World! 👋</div>
+                                <div class="job-company">Wrote my first line of code</div>
                                 <div class="job-year">2022</div>
                             </div>
                         </div>
@@ -179,10 +213,10 @@ function renderHome(projects) {
             </div>
 
             <div class="project-grid-visual">
-                ${generateProjectCards(projects.slice(0, 3))} 
+                ${generateProjectCards(projects ? projects.slice(0, 3) : [])} 
             </div>
 
-            ${generateProjectModals(projects)}
+            ${generateProjectModals(projects || [])}
 
             <div class="bottom-grid">
                 <div class="card">
@@ -194,6 +228,47 @@ function renderHome(projects) {
                         <div style="font-weight:600">Microsoft Power BI Certification</div>
                         <div style="font-size:0.8rem; color:var(--text-muted)">Microsoft</div>
                     </div>
+                    <div class="cert-item">
+                        <div style="font-weight:600">Intro to Cybersecurity</div>
+                        <div style="font-size:0.8rem; color:var(--text-muted)">Cisco Networking Academy</div>
+                    </div>
+                    <div class="cert-item">
+                        <div style="font-weight:600">Tech Start-up Fundamentals</div>
+                        <div style="font-size:0.8rem; color:var(--text-muted)">BatStateU & HCMUTE</div>
+                    </div>
+                </div>
+                <div class="card">
+                     <div class="card-title"><i data-feather="message-square"></i> Recommendations</div>
+                     <div style="height: 120px; display:flex; align-items:center; justify-content:center; color:var(--text-muted); gap:5px;">
+                        <span style="width:6px; height:6px; background:#ccc; border-radius:50%"></span>
+                        <span style="width:6px; height:6px; background:#ccc; border-radius:50%"></span>
+                        <span style="width:6px; height:6px; background:#ccc; border-radius:50%"></span>
+                        <span style="width:6px; height:6px; background:#ccc; border-radius:50%"></span>
+                        <span style="width:6px; height:6px; background:#ccc; border-radius:50%"></span>
+                     </div>
+                </div>
+            </div>
+
+            <div class="footer-links-grid">
+                <div class="footer-col">
+                    <small><i data-feather="users"></i> A member of</small>
+                    <div class="footer-link-item">BatStateU CICS</div>
+                    <div class="footer-link-item">JPLPC Students</div>
+                </div>
+                <div class="footer-col">
+                    <small><i data-feather="link"></i> Social Links</small>
+                    <a href="https://www.linkedin.com/" target="_blank" class="footer-link-item footer-clickable"><i data-feather="linkedin" size="12"></i> LinkedIn</a>
+                    <a href="https://github.com/" target="_blank" class="footer-link-item footer-clickable"><i data-feather="github" size="12"></i> GitHub</a>
+                    <a href="https://instagram.com/" target="_blank" class="footer-link-item footer-clickable"><i data-feather="instagram" size="12"></i> Instagram</a>
+                </div>
+                <div class="footer-col">
+                    <small><i data-feather="mic"></i> Availability</small>
+                    <div class="footer-link-item">Open for Inquiries</div>
+                </div>
+                <div class="footer-col">
+                    <small><i data-feather="mail"></i> Contact</small>
+                    <a href="mailto:${email}" class="footer-link-item footer-clickable">${email}</a>
+                    <a href="#" class="footer-link-item footer-clickable" style="margin-top:5px; font-weight:600;">Schedule a Call <i data-feather="chevron-right" size="12"></i></a>
                 </div>
             </div>
 
