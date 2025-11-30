@@ -11,7 +11,7 @@ const projectsData = [
         title: "Holiday Hunter",
         subtitle: "Global Holiday Tracking Dashboard",
         tags: ["Next.js", "Tailwind", "API Integration"],
-        image: "https://imgur.com/a/MVjKpjy", 
+        image: "https://i.imgur.com/oADFnT9.png", 
         link: "https://holiday-hunter.vercel.app", // <--- NEW LINK FIELD
         description: "Interactive dashboard analyzing global public holidays to find the 'laziest' countries.",
         // This 'modalContent' is your BLOG area! You can write long paragraphs here.
