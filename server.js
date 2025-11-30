@@ -11,7 +11,7 @@ const projectsData = [
         title: "Holiday Hunter",
         subtitle: "Global Holiday Tracking Dashboard",
         tags: ["Next.js", "Tailwind", "API Integration"],
-        image: "https://placehold.co/600x400/1e1e1e/FFF?text=Holiday+Hunter+Preview", 
+        image: "https://imgur.com/a/MVjKpjy", 
         link: "https://holiday-hunter.vercel.app", // <--- NEW LINK FIELD
         description: "Interactive dashboard analyzing global public holidays to find the 'laziest' countries.",
         // This 'modalContent' is your BLOG area! You can write long paragraphs here.
@@ -27,7 +27,7 @@ const projectsData = [
         title: "CET Tracker PH",
         subtitle: "University Entrance Exam Tracker",
         tags: ["Next.js", "Supabase", "TypeScript"],
-        image: "https://placehold.co/600x400/2563EB/FFF?text=CET+Tracker",
+        image: "https://i.imgur.com/ba89mgV.png",
         link: "https://cet-tracker-app.vercel.app", // <--- NEW LINK FIELD
         description: "Track College Entrance Test schedules, requirements, and announcements for top PH universities.",
         modalContent: {
