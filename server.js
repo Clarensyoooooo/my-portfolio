@@ -388,65 +388,63 @@ function generateProjectModals(projects) {
     if(!projects) return '';
     return projects.map(p => `
         <div id="modal-${p.id}" class="modal-overlay">
-            <div class="ios-note-wrapper">
-                
-                <div class="ios-nav-bar">
-                    <button class="ios-back-btn" onclick="closeModal(null, '${p.id}')">
-                        <i data-feather="chevron-left"></i> Projects
-                    </button>
-                    <div class="ios-actions">
-                         <a href="${p.link}" target="_blank" class="ios-action-btn"><i data-feather="external-link"></i></a>
-                    </div>
-                </div>
+            
+            <button class="close-btn-fixed" onclick="closeModal(null, '${p.id}')">
+                <i data-feather="x"></i> Close
+            </button>
 
-                <div class="ios-paper">
-                    <div class="ios-note-header">
-                        <h1 class="ios-title">${p.title}</h1>
-                        <span class="ios-date">${p.subtitle}</span>
+            <div class="modal-content-scrollable">
+                <div class="modal-inner-container">
+                    
+                    <div class="modal-header-simple">
+                        <h1>${p.title}</h1>
+                        <span class="subtitle">${p.subtitle}</span>
+                        <div class="modal-actions">
+                            <a href="${p.link}" target="_blank" class="btn btn-black">
+                                Visit Live Website <i data-feather="external-link"></i>
+                            </a>
+                        </div>
                     </div>
 
-                    <div class="ios-note-body">
+                    <div class="content-block-media">
+                        <img src="${p.image}" alt="${p.title}" class="project-detail-img">
+                    </div>
+
+                    <div class="content-block-text">
+                        <h3>The Story</h3>
+                        <p>${p.modalContent.gist}</p>
+                    </div>
+
+                    ${p.gallery &&QH p.gallery[0] ? `
+                    <div class="content-block-media">
+                        <img src="${p.gallery[0]}" class="project-detail-img">
+                    </div>` : ''}
+
+                    <div class="content-block-text">
+                        <h3>The Goal</h3>
+                        <p>${p.modalContent.goal}</p>
+                    </div>
+
+                    ${p.gallery && p.gallery[1] ? `
+                    <div class="content-block-media">
+                        <img src="${p.gallery[1]}" class="project-detail-img">
+                    </div>` : ''}
+
+                    <div class="content-block-text">
+                        <h3>Technical Approach</h3>
+                        <p>${p.modalContent.approach}</p>
                         
-                        <div class="ios-image-block">
-                            <img src="${p.image}" alt="${p.title}" class="ios-img">
-                        </div>
+                        <h3>The Result</h3>
+                        <p>${p.modalContent.result}</p>
 
-                        <div class="ios-text-block">
-                            <h3>The Story</h3>
-                            <p>${p.modalContent.gist}</p>
-                        </div>
-
-                        ${p.gallery && p.gallery[0] ? `
-                        <div class="ios-image-block">
-                            <img src="${p.gallery[0]}" class="ios-img">
-                        </div>` : ''}
-
-                        <div class="ios-text-block">
-                            <h3>The Goal</h3>
-                            <p>${p.modalContent.goal}</p>
-                        </div>
-
-                        ${p.gallery && p.gallery[1] ? `
-                        <div class="ios-image-block">
-                            <img src="${p.gallery[1]}" class="ios-img">
-                        </div>` : ''}
-
-                        <div class="ios-text-block">
+                        <div style="margin-top: 2rem;">
                             <h3>Tech Stack</h3>
                             <div class="tags-wrapper">
                                 ${p.tags.map(tag => `<span class="tag">${tag}</span>`).join('')}
                             </div>
                         </div>
-
-                        <div class="ios-text-block">
-                            <h3>Technical Approach</h3>
-                            <p>${p.modalContent.approach}</p>
-                            
-                            <h3>The Result</h3>
-                            <p>${p.modalContent.result}</p>
-                        </div>
-
                     </div>
+
                 </div>
             </div>
         </div>
@@ -728,106 +726,76 @@ function getCSS() {
         }
             /* Add this inside the string returned by getCSS() */
 
-/* --- iOS NOTES MODAL STYLES --- */
-.ios-note-wrapper {
-    max-width: 700px;
-    margin: 0 auto;
+/* Add this to getCSS() string */
+
+/* --- SEQUENTIAL MODAL LAYOUT --- */
+.modal-content-scrollable {
+    width: 100%;
     min-height: 100vh;
     background: var(--bg-page);
-    position: relative;
-    display: flex;
-    flex-direction: column;
+    overflow-y: auto;
+    padding: 60px 20px 100px 20px; /* Top padding for close button */
 }
 
-.ios-nav-bar {
-    position: sticky;
-    top: 0;
-    z-index: 10;
-    background: rgba(255, 255, 255, 0.95); /* Blur effect light */
-    backdrop-filter: blur(10px);
-    border-bottom: 0.5px solid rgba(0,0,0,0.1);
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 10px 15px;
-    height: 50px;
-}
-body.dark .ios-nav-bar {
-    background: rgba(28, 28, 30, 0.95); /* iOS Dark grey */
-    border-bottom: 0.5px solid rgba(255,255,255,0.1);
+.modal-inner-container {
+    max-width: 800px; /* Reading width */
+    margin: 0 auto;
 }
 
-.ios-back-btn {
-    background: none;
-    border: none;
-    color: #007AFF; /* iOS Blue */
-    font-size: 1rem;
-    font-weight: 500;
-    display: flex;
-    align-items: center;
-    cursor: pointer;
-    padding: 0;
+.modal-header-simple {
+    text-align: center;
+    margin-bottom: 3rem;
+    margin-top: 2rem;
 }
-
-.ios-actions { display: flex; gap: 15px; color: #007AFF; }
-.ios-action-btn { color: #007AFF; cursor: pointer; }
-
-.ios-paper {
-    padding: 20px 25px 80px 25px;
-    background: var(--bg-page);
-    flex: 1;
+.modal-header-simple h1 {
+    font-size: 2.5rem;
+    margin-bottom: 0.5rem;
+    line-height: 1.1;
 }
-
-.ios-note-header { margin-bottom: 25px; }
-.ios-title {
-    font-size: 2.2rem;
-    font-weight: 800;
-    margin: 0;
-    letter-spacing: -0.5px;
-    line-height: 1.2;
-}
-.ios-date {
-    display: block;
-    margin-top: 6px;
-    color: #8E8E93; /* iOS Grey */
-    font-size: 0.9rem;
-    font-weight: 500;
-}
-
-.ios-note-body {
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+.modal-header-simple .subtitle {
     font-size: 1.1rem;
-    line-height: 1.6;
+    color: var(--text-muted);
+    display: block;
+    margin-bottom: 1.5rem;
 }
 
-.ios-image-block {
-    margin: 20px -25px; /* Full width bleeding to edges like Notes */
+.content-block-media {
+    margin-bottom: 3rem;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+    background: var(--hover); /* Placeholder color while loading */
 }
-.ios-img {
+
+.project-detail-img {
     width: 100%;
     height: auto;
     display: block;
 }
 
-.ios-text-block {
-    margin-bottom: 30px;
+.content-block-text {
+    margin-bottom: 3rem;
+    padding: 0 1rem; /* Indent text slightly relative to images */
 }
-.ios-text-block h3 {
-    font-size: 1.1rem;
+
+.content-block-text h3 {
+    font-size: 1.25rem;
     font-weight: 700;
-    margin-bottom: 8px;
-    color: #E0A638; /* Notes App Yellow/Gold Accent */
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-}
-.ios-text-block p {
-    margin: 0;
+    margin-bottom: 1rem;
     color: var(--text-main);
 }
 
-/* Dark Mode Adjustments */
-body.dark .ios-note-wrapper { background: #000000; }
-body.dark .ios-paper { background: #000000; }
+.content-block-text p {
+    font-size: 1.05rem;
+    line-height: 1.7;
+    color: var(--text-muted);
+    margin-bottom: 1.5rem;
+}
+
+@media (max-width: 768px) {
+    .modal-header-simple h1 { font-size: 2rem; }
+    .content-block-text { padding: 0; }
+}
     `;
 }
 
