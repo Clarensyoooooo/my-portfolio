@@ -783,9 +783,10 @@ function getCSS() {
         .close-btn-fixed:hover { background: rgba(0, 0, 0, 0.8); }
 
         .modal-content-scrollable { width: 100%; min-height: 100vh; background: var(--bg-page); overflow-y: auto; padding: 60px 20px 100px 20px; }
-        .modal-inner-container { max-width: 800px; margin: 0 auto; }
+        
+        /* FIXED: Added text-align left to container for global uniformity */
+        .modal-inner-container { max-width: 800px; margin: 0 auto; text-align: left; }
 
-        /* FIXED: Aligned left and spacing */
         .modal-header-simple { text-align: left; margin-bottom: 2rem; margin-top: 2rem; }
         .modal-header-simple h1 { font-size: 2.5rem; margin-bottom: 0.5rem; line-height: 1.1; }
         .modal-header-simple .subtitle { font-size: 1.1rem; color: var(--text-muted); display: block; margin-bottom: 1.5rem; }
@@ -797,13 +798,13 @@ function getCSS() {
         .content-block-media { margin-bottom: 3rem; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 20px rgba(0,0,0,0.05); background: var(--hover); }
         .project-detail-img { width: 100%; height: auto; display: block; }
 
-        .content-block-text { margin-bottom: 3rem; padding: 0 1rem; }
+        /* FIXED: Removed padding from content block to align it with header */
+        .content-block-text { margin-bottom: 3rem; padding: 0; }
         .content-block-text h3 { font-size: 1.25rem; font-weight: 700; margin-bottom: 1rem; color: var(--text-main); }
         .content-block-text p { font-size: 1.05rem; line-height: 1.7; color: var(--text-muted); margin-bottom: 1.5rem; }
 
         @media (max-width: 768px) {
             .modal-header-simple h1 { font-size: 2rem; }
-            .content-block-text { padding: 0; }
         }
     `;
 }
