@@ -3,10 +3,7 @@ const express = require('express');
 const mongoose = require('mongoose');
 const path = require('path');
 
-// --- 1. IMPORT ADMINJS (New Code) ---
-const AdminJS = require('adminjs');
-const AdminJSExpress = require('@adminjs/express');
-const AdminJSMongoose = require('@adminjs/mongoose');
+// (AdminJS imports REMOVED)
 
 const app = express();
 const port = process.env.PORT || 3000;
@@ -23,7 +20,7 @@ const ProjectSchema = new mongoose.Schema({
     subtitle: String,
     tags: [String],
     image: String,
-    gallery: [String], // Ensure you kept this from our previous step!
+    gallery: [String],
     link: String,
     description: String,
     modalContent: { gist: String, goal: String, approach: String, result: String }
@@ -53,45 +50,163 @@ const Experience = mongoose.model('Experience', ExperienceSchema, 'experience');
 const Certification = mongoose.model('Certification', CertificationSchema); 
 const TechStack = mongoose.model('TechStack', TechStackSchema, 'tech_stack');
 
-// --- 5. SETUP ADMINJS (New Code) ---
-// We tell AdminJS how to talk to Mongoose
-AdminJS.registerAdapter(AdminJSMongoose);
-
-// We configure the admin panel
-const adminOptions = {
-  resources: [Project, Experience, Certification, TechStack], // These are the models we created above
-  rootPath: '/admin',
+// --- AUTHENTICATION MIDDLEWARE ---
+const adminUser = {
+    username: "admin",
+    password: "Jediletwotwo22" // Your password
 };
 
-// Build the admin router
-const admin = new AdminJS(adminOptions);
-const adminRouter = AdminJSExpress.buildAuthenticatedRouter(admin, {
-  authenticate: async (email, password) => {
-    // HARDCODED CREDENTIALS (Change these!)
-    if (email === 'admin@example.com' && password === 'password') {
-      return { email: 'admin@example.com', role: 'admin' };
+function checkAuth(req, res, next) {
+    const auth = {login: adminUser.username, password: adminUser.password}
+    const b64auth = (req.headers.authorization || '').split(' ')[1] || ''
+    const [login, password] = Buffer.from(b64auth, 'base64').toString().split(':')
+
+    if (login && password && login === auth.login && password === auth.password) {
+        return next()
     }
-    return false;
-  },
-  cookiePassword: 'some-secret-password-used-to-encrypt-cookies',
-  cookieName: 'adminjs',
-});
 
-// Mount the admin router BEFORE your other routes
-app.use(admin.options.rootPath, adminRouter);
+    res.set('WWW-Authenticate', 'Basic realm="401"')
+    res.status(401).send('Authentication required.')
+}
 
+// Allow express to parse form data
+app.use(express.urlencoded({ extended: true }));
 
-// --- 6. SERVE STATIC FILES (Existing Code) ---
+// (AdminJS Setup Block REMOVED)
+
+// --- 6. SERVE STATIC FILES ---
 app.use(express.static(path.join(__dirname, 'public')));
 
-// --- STUDENT DATA (Existing Code) ---
+// --- STUDENT DATA ---
 const name = "Clarence Neil Meneses";
 const role = "IT Student \\ Full-Stack Developer";
 const location = "Tanauan City, Batangas";
 const email = "clarenceneilpamplona@gmail.com";
 const section = "BA 4102";
 
+
 // --- ROUTES ---
+
+// --- ADMIN ROUTES ---
+
+// 1. ADMIN DASHBOARD (Lists all projects)
+app.get('/admin', checkAuth, async (req, res) => {
+    const projects = await Project.find({});
+    let html = `
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <title>Admin Dashboard</title>
+        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+        <style>
+            body { font-family: 'Inter', sans-serif; padding: 2rem; max-width: 800px; margin: 0 auto; background: #f5f5f5; }
+            .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; }
+            .card { background: white; padding: 1.5rem; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); margin-bottom: 1rem; display: flex; justify-content: space-between; align-items: center; }
+            .btn { text-decoration: none; padding: 0.5rem 1rem; border-radius: 6px; font-weight: 600; font-size: 0.9rem; }
+            .btn-green { background: #10B981; color: white; }
+            .btn-red { background: #EF4444; color: white; margin-left: 1rem; }
+            .form-group { margin-bottom: 1rem; }
+            label { display: block; margin-bottom: 0.5rem; font-weight: 600; }
+            input, textarea { width: 100%; padding: 0.8rem; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box; }
+        </style>
+    </head>
+    <body>
+        <div class="header">
+            <h1>Admin Dashboard</h1>
+            <a href="/admin/add" class="btn btn-green">+ Add New Project</a>
+        </div>
+        
+        ${projects.map(p => `
+            <div class="card">
+                <div>
+                    <strong>${p.title}</strong><br>
+                    <span style="color:#666; font-size:0.8rem">${p.subtitle}</span>
+                </div>
+                <div>
+                     <a href="${p.link}" target="_blank" style="margin-right:10px; color:#2563EB">View</a>
+                     <a href="/admin/delete/${p.id}" class="btn btn-red" onclick="return confirm('Are you sure?')">Delete</a>
+                </div>
+            </div>
+        `).join('')}
+    </body>
+    </html>
+    `;
+    res.send(html);
+});
+
+// 2. SHOW ADD FORM
+app.get('/admin/add', checkAuth, (req, res) => {
+    res.send(`
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <title>Add Project</title>
+        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+        <style>body { font-family: 'Inter', sans-serif; padding: 2rem; max-width: 600px; margin: 0 auto; }</style>
+    </head>
+    <body>
+        <h1>Add New Project</h1>
+        <form action="/admin/add" method="POST">
+            <div style="margin-bottom:1rem"><label>ID (unique, e.g. 'my-app')</label><input name="id" required></div>
+            <div style="margin-bottom:1rem"><label>Title</label><input name="title" required></div>
+            <div style="margin-bottom:1rem"><label>Subtitle</label><input name="subtitle"></div>
+            <div style="margin-bottom:1rem"><label>Main Image URL</label><input name="image" required></div>
+            <div style="margin-bottom:1rem"><label>Gallery Image 1 URL</label><input name="gallery1"></div>
+            <div style="margin-bottom:1rem"><label>Gallery Image 2 URL</label><input name="gallery2"></div>
+            <div style="margin-bottom:1rem"><label>Tags (comma separated)</label><input name="tags"></div>
+            <div style="margin-bottom:1rem"><label>Live Link</label><input name="link"></div>
+            
+            <h3>Modal Content</h3>
+            <div style="margin-bottom:1rem"><label>The Story (Gist)</label><textarea name="gist" rows="3"></textarea></div>
+            <div style="margin-bottom:1rem"><label>The Goal</label><textarea name="goal" rows="3"></textarea></div>
+            <div style="margin-bottom:1rem"><label>The Approach</label><textarea name="approach" rows="3"></textarea></div>
+            <div style="margin-bottom:1rem"><label>The Result</label><textarea name="result" rows="3"></textarea></div>
+
+            <button type="submit" style="background: #000; color: #fff; padding: 10px 20px; border: none; border-radius: 6px; cursor: pointer;">Save Project</button>
+        </form>
+    </body>
+    </html>
+    `);
+});
+
+// 3. HANDLE ADD FORM SUBMIT
+app.post('/admin/add', checkAuth, async (req, res) => {
+    try {
+        const gallery = [];
+        if(req.body.gallery1) gallery.push(req.body.gallery1);
+        if(req.body.gallery2) gallery.push(req.body.gallery2);
+
+        const newProject = new Project({
+            id: req.body.id,
+            title: req.body.title,
+            subtitle: req.body.subtitle,
+            image: req.body.image,
+            gallery: gallery,
+            link: req.body.link,
+            tags: req.body.tags ? req.body.tags.split(',').map(t => t.trim()) : [],
+            modalContent: {
+                gist: req.body.gist,
+                goal: req.body.goal,
+                approach: req.body.approach,
+                result: req.body.result
+            }
+        });
+        await newProject.save();
+        res.redirect('/admin');
+    } catch (err) {
+        res.send("Error saving: " + err.message);
+    }
+});
+
+// 4. DELETE ROUTE
+app.get('/admin/delete/:id', checkAuth, async (req, res) => {
+    try {
+        await Project.deleteOne({ id: req.params.id });
+        res.redirect('/admin');
+    } catch (err) {
+        res.send("Error deleting: " + err.message);
+    }
+});
 
 // 1. HOME ROUTE
 app.get('/', async (req, res) => { 
