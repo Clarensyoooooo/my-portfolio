@@ -16,7 +16,8 @@ const ProjectSchema = new mongoose.Schema({
     title: String,
     subtitle: String,
     tags: [String],
-    image: String,
+    image: String, // Your main cover image
+    gallery: [String], // <--- ADD THIS: Array of image URLs for the "Notes" flow
     link: String,
     description: String,
     modalContent: { gist: String, goal: String, approach: String, result: String }
@@ -387,45 +388,64 @@ function generateProjectModals(projects) {
     if(!projects) return '';
     return projects.map(p => `
         <div id="modal-${p.id}" class="modal-overlay">
-            <button class="close-btn-fixed" onclick="closeModal(null, '${p.id}')">
-                <i data-feather="x"></i> Close
-            </button>
-            <div class="modal-content-full">
-                <div class="modal-hero-full" style="background-image: url('${p.image}')">
-                    <div class="hero-overlay">
-                        <h1>${p.title}</h1>
-                        <span class="hero-subtitle">${p.subtitle}</span>
-                        <div style="margin-top: 2rem;">
-                            <a href="${p.link}" target="_blank" class="btn-live">
-                                Visit Live Website <i data-feather="external-link"></i>
-                            </a>
-                        </div>
+            <div class="ios-note-wrapper">
+                
+                <div class="ios-nav-bar">
+                    <button class="ios-back-btn" onclick="closeModal(null, '${p.id}')">
+                        <i data-feather="chevron-left"></i> Projects
+                    </button>
+                    <div class="ios-actions">
+                         <a href="${p.link}" target="_blank" class="ios-action-btn"><i data-feather="external-link"></i></a>
                     </div>
                 </div>
-                <div class="modal-body-full">
-                    <div class="modal-grid">
-                        <div class="modal-left">
-                            <div class="modal-section">
-                                <h3>The Story</h3> <p>${p.modalContent.gist}</p>
-                            </div>
-                            <div class="modal-section">
-                                <h3>The Goal</h3> <p>${p.modalContent.goal}</p>
+
+                <div class="ios-paper">
+                    <div class="ios-note-header">
+                        <h1 class="ios-title">${p.title}</h1>
+                        <span class="ios-date">${p.subtitle}</span>
+                    </div>
+
+                    <div class="ios-note-body">
+                        
+                        <div class="ios-image-block">
+                            <img src="${p.image}" alt="${p.title}" class="ios-img">
+                        </div>
+
+                        <div class="ios-text-block">
+                            <h3>The Story</h3>
+                            <p>${p.modalContent.gist}</p>
+                        </div>
+
+                        ${p.gallery && p.gallery[0] ? `
+                        <div class="ios-image-block">
+                            <img src="${p.gallery[0]}" class="ios-img">
+                        </div>` : ''}
+
+                        <div class="ios-text-block">
+                            <h3>The Goal</h3>
+                            <p>${p.modalContent.goal}</p>
+                        </div>
+
+                        ${p.gallery && p.gallery[1] ? `
+                        <div class="ios-image-block">
+                            <img src="${p.gallery[1]}" class="ios-img">
+                        </div>` : ''}
+
+                        <div class="ios-text-block">
+                            <h3>Tech Stack</h3>
+                            <div class="tags-wrapper">
+                                ${p.tags.map(tag => `<span class="tag">${tag}</span>`).join('')}
                             </div>
                         </div>
-                        <div class="modal-right">
-                             <div class="modal-section">
-                                <h3>Tech Stack</h3>
-                                <div class="tags-wrapper">
-                                    ${p.tags.map(tag => `<span class="tag">${tag}</span>`).join('')}
-                                </div>
-                            </div>
-                            <div class="modal-section">
-                                <h3>Technical Approach</h3> <p>${p.modalContent.approach}</p>
-                            </div>
-                             <div class="modal-section">
-                                <h3>The Result</h3> <p>${p.modalContent.result}</p>
-                            </div>
+
+                        <div class="ios-text-block">
+                            <h3>Technical Approach</h3>
+                            <p>${p.modalContent.approach}</p>
+                            
+                            <h3>The Result</h3>
+                            <p>${p.modalContent.result}</p>
                         </div>
+
                     </div>
                 </div>
             </div>
@@ -706,6 +726,108 @@ function getCSS() {
             transform: translateY(-2px);
             background-color: #f0f0f0;
         }
+            /* Add this inside the string returned by getCSS() */
+
+/* --- iOS NOTES MODAL STYLES --- */
+.ios-note-wrapper {
+    max-width: 700px;
+    margin: 0 auto;
+    min-height: 100vh;
+    background: var(--bg-page);
+    position: relative;
+    display: flex;
+    flex-direction: column;
+}
+
+.ios-nav-bar {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    background: rgba(255, 255, 255, 0.95); /* Blur effect light */
+    backdrop-filter: blur(10px);
+    border-bottom: 0.5px solid rgba(0,0,0,0.1);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 15px;
+    height: 50px;
+}
+body.dark .ios-nav-bar {
+    background: rgba(28, 28, 30, 0.95); /* iOS Dark grey */
+    border-bottom: 0.5px solid rgba(255,255,255,0.1);
+}
+
+.ios-back-btn {
+    background: none;
+    border: none;
+    color: #007AFF; /* iOS Blue */
+    font-size: 1rem;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    padding: 0;
+}
+
+.ios-actions { display: flex; gap: 15px; color: #007AFF; }
+.ios-action-btn { color: #007AFF; cursor: pointer; }
+
+.ios-paper {
+    padding: 20px 25px 80px 25px;
+    background: var(--bg-page);
+    flex: 1;
+}
+
+.ios-note-header { margin-bottom: 25px; }
+.ios-title {
+    font-size: 2.2rem;
+    font-weight: 800;
+    margin: 0;
+    letter-spacing: -0.5px;
+    line-height: 1.2;
+}
+.ios-date {
+    display: block;
+    margin-top: 6px;
+    color: #8E8E93; /* iOS Grey */
+    font-size: 0.9rem;
+    font-weight: 500;
+}
+
+.ios-note-body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    font-size: 1.1rem;
+    line-height: 1.6;
+}
+
+.ios-image-block {
+    margin: 20px -25px; /* Full width bleeding to edges like Notes */
+}
+.ios-img {
+    width: 100%;
+    height: auto;
+    display: block;
+}
+
+.ios-text-block {
+    margin-bottom: 30px;
+}
+.ios-text-block h3 {
+    font-size: 1.1rem;
+    font-weight: 700;
+    margin-bottom: 8px;
+    color: #E0A638; /* Notes App Yellow/Gold Accent */
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+.ios-text-block p {
+    margin: 0;
+    color: var(--text-main);
+}
+
+/* Dark Mode Adjustments */
+body.dark .ios-note-wrapper { background: #000000; }
+body.dark .ios-paper { background: #000000; }
     `;
 }
 
