@@ -6,17 +6,22 @@ const port = process.env.PORT || 3000;
 // --- PROJECT DATA ---
 const projectsData = [
     {
+     // --- PROJECT DATA ---
+const projectsData = [
+    {
         id: "holiday-hunter",
         title: "Holiday Hunter",
         subtitle: "Global Holiday Tracking Dashboard",
         tags: ["Next.js", "Tailwind", "API Integration"],
         image: "https://placehold.co/600x400/1e1e1e/FFF?text=Holiday+Hunter+Preview", 
+        link: "https://holiday-hunter.vercel.app", // <--- NEW LINK FIELD
         description: "Interactive dashboard analyzing global public holidays to find the 'laziest' countries.",
+        // This 'modalContent' is your BLOG area! You can write long paragraphs here.
         modalContent: {
-            gist: "I built a dashboard that gamifies global holiday tracking.",
-            goal: "To visualize monthly distributions and track upcoming breaks worldwide.",
-            approach: "Used Next.js for the frontend and rapid API calls.",
-            result: "A fun tool used by students to plan 'slacking off' periods."
+            gist: "I wanted to create something fun that students would actually use. Holiday Hunter isn't just a calendar; it's a gamified dashboard that ranks countries by how many 'lazy days' they have.",
+            goal: "The main goal was to practice working with real-time Data APIs and visualizing that data using Recharts in a way that feels modern and playful.",
+            approach: "I used Next.js for server-side rendering to ensure the site is fast. For the data, I connected to the Nager.Date API. I spent a lot of time polishing the UI with Tailwind CSS to give it a 'Dark Mode' aesthetic.",
+            result: "It was a hit with my classmates! We now use it to plan our breaks. Technically, it helped me master API error handling and dynamic routing."
         }
     },
     {
@@ -25,12 +30,13 @@ const projectsData = [
         subtitle: "University Entrance Exam Tracker",
         tags: ["Next.js", "Supabase", "TypeScript"],
         image: "https://placehold.co/600x400/2563EB/FFF?text=CET+Tracker",
-        description: "Track College Entrance Test schedules and requirements for top PH universities.",
+        link: "https://cet-tracker-app.vercel.app", // <--- NEW LINK FIELD
+        description: "Track College Entrance Test schedules, requirements, and announcements for top PH universities.",
         modalContent: {
-            gist: "A centralized platform for students to track exam schedules.",
-            goal: "Simplify the chaotic college application process.",
-            approach: "Integrated Supabase for real-time announcements.",
-            result: "Helped over 500 students stay updated."
+            gist: "College applications are stressful. I built this to be the 'one-stop-shop' I wish I had when I was applying.",
+            goal: "To centralize scattered information from Facebook posts and university websites into one clean, searchable dashboard.",
+            approach: "I chose Supabase for the backend because I needed real-time updates. When a university changes a date, the site updates instantly for all users.",
+            result: "The project helped over 500 students during the last application season and taught me the importance of mobile-first design."
         }
     },
     {
@@ -39,6 +45,7 @@ const projectsData = [
         subtitle: "Government GIS System",
         tags: ["PHP", "MySQL", "LeafletJS"],
         image: "https://placehold.co/600x400/10b981/FFF?text=PDAO+Analytics",
+        link: "https://pdaohelps.online",
         description: "Full-stack system with GIS mapping and analytics dashboard for government use.",
         modalContent: {
             gist: "A comprehensive system for the Persons with Disability Affairs Office.",
@@ -382,6 +389,13 @@ function generateProjectModals(projects) {
                     <div class="hero-overlay">
                         <h1>${p.title}</h1>
                         <span class="hero-subtitle">${p.subtitle}</span>
+                        
+                        <div style="margin-top: 2rem;">
+                            <a href="${p.link}" target="_blank" class="btn-live">
+                                Visit Live Website <i data-feather="external-link"></i>
+                            </a>
+                        </div>
+
                     </div>
                 </div>
 
@@ -389,8 +403,7 @@ function generateProjectModals(projects) {
                     <div class="modal-grid">
                         <div class="modal-left">
                             <div class="modal-section">
-                                <h3>The Gist</h3>
-                                <p>${p.modalContent.gist}</p>
+                                <h3>The Story</h3> <p>${p.modalContent.gist}</p>
                             </div>
                             <div class="modal-section">
                                 <h3>The Goal</h3>
@@ -405,7 +418,7 @@ function generateProjectModals(projects) {
                                 </div>
                             </div>
                             <div class="modal-section">
-                                <h3>Our Approach</h3>
+                                <h3>Technical Approach</h3>
                                 <p>${p.modalContent.approach}</p>
                             </div>
                              <div class="modal-section">
@@ -718,6 +731,25 @@ function getCSS() {
     .modal-grid { grid-template-columns: 1fr; gap: 2rem; }
     .hero-overlay h1 { font-size: 2rem; }
     .modal-hero-full { height: 40vh; }
+}
+    /* --- Add this to your existing CSS --- */
+.btn-live {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    background-color: #ffffff;
+    color: #000000;
+    padding: 12px 24px;
+    border-radius: 30px;
+    font-weight: 700;
+    font-size: 1rem;
+    text-decoration: none;
+    transition: transform 0.2s, background-color 0.2s;
+}
+
+.btn-live:hover {
+    transform: translateY(-2px);
+    background-color: #f0f0f0;
 }
     `;
 }
