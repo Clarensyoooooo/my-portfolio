@@ -40,16 +40,17 @@ const TechStackSchema = new mongoose.Schema({
     items: [String]
 });
 
-// --- 3. CREATE MODELS ---
+// --- 3. CREATE MODELS (The Fix is Here!) ---
 const Project = mongoose.model('Project', ProjectSchema);
-const Experience = mongoose.model('Experience', ExperienceSchema);
-const Certification = mongoose.model('Certification', CertificationSchema);
-const TechStack = mongoose.model('TechStack', TechStackSchema, 'tech_stack'); // Explicit collection name
+// FIX: We tell Mongoose to look for 'experience' (singular), not 'experiences'
+const Experience = mongoose.model('Experience', ExperienceSchema, 'experience'); 
+const Certification = mongoose.model('Certification', CertificationSchema); // Looks for 'certifications' (plural) - Correct based on your screenshot
+const TechStack = mongoose.model('TechStack', TechStackSchema, 'tech_stack');
 
 // Serve static files
 app.use(express.static(path.join(__dirname, 'public')));
 
-// --- STUDENT DATA (Static info) ---
+// --- STUDENT DATA ---
 const name = "Clarence Neil Meneses";
 const role = "IT Student \\ Full-Stack Developer";
 const location = "Tanauan City, Batangas";
@@ -58,12 +59,12 @@ const section = "BA 4102";
 
 // --- ROUTES ---
 
-// 1. HOME ROUTE - Fetches EVERYTHING
+// 1. HOME ROUTE
 app.get('/', async (req, res) => { 
     try {
         const [projects, experience, certifications, techStack] = await Promise.all([
             Project.find({}),
-            Experience.find({}), // Timeline is usually sorted, but default order is fine for now
+            Experience.find({}), 
             Certification.find({}),
             TechStack.find({})
         ]);
@@ -71,7 +72,7 @@ app.get('/', async (req, res) => {
         res.send(renderHome(projects, experience, certifications, techStack)); 
     } catch (err) {
         console.error(err);
-        res.status(500).send("Database Error");
+        res.status(500).send("Database Error: " + err.message);
     }
 });
 
@@ -221,6 +222,29 @@ function renderHome(projects, experience, certifications, techStack) {
                 </div>
             </div>
 
+            <div class="footer-links-grid">
+                <div class="footer-col">
+                    <small><i data-feather="users"></i> A member of</small>
+                    <div class="footer-link-item">BatStateU CICS</div>
+                    <div class="footer-link-item">JPLPC Students</div>
+                </div>
+                <div class="footer-col">
+                    <small><i data-feather="link"></i> Social Links</small>
+                    <a href="https://www.linkedin.com/" target="_blank" class="footer-link-item footer-clickable"><i data-feather="linkedin" size="12"></i> LinkedIn</a>
+                    <a href="https://github.com/" target="_blank" class="footer-link-item footer-clickable"><i data-feather="github" size="12"></i> GitHub</a>
+                    <a href="https://instagram.com/" target="_blank" class="footer-link-item footer-clickable"><i data-feather="instagram" size="12"></i> Instagram</a>
+                </div>
+                <div class="footer-col">
+                    <small><i data-feather="mic"></i> Availability</small>
+                    <div class="footer-link-item">Open for Inquiries</div>
+                </div>
+                <div class="footer-col">
+                    <small><i data-feather="mail"></i> Contact</small>
+                    <a href="mailto:${email}" class="footer-link-item footer-clickable">${email}</a>
+                    <a href="#" class="footer-link-item footer-clickable" style="margin-top:5px; font-weight:600;">Schedule a Call <i data-feather="chevron-right" size="12"></i></a>
+                </div>
+            </div>
+
             <footer class="copyright">
                 &copy; 2025 ${name}. All rights reserved.<br>
                 <span style="font-size:0.7rem; opacity:0.5; margin-top:5px; display:block;">${section}</span>
@@ -247,7 +271,7 @@ function renderHome(projects, experience, certifications, techStack) {
 // --- GENERATOR FUNCTIONS (DYNAMIC) ---
 
 function generateExperience(experience) {
-    if(!experience) return '';
+    if(!experience || experience.length === 0) return '<p>No experience found.</p>';
     return experience.map(job => `
         <div class="timeline-item">
             <div class="timeline-dot"></div>
@@ -262,7 +286,6 @@ function generateExperience(experience) {
 
 function generateTechStackHome(techStack) {
     if(!techStack) return '';
-    // Limit to first 2 categories on home for layout safety
     return techStack.slice(0, 2).map(stack => `
         <div class="stack-category">${stack.category}</div>
         <div class="tags-wrapper">
@@ -273,7 +296,6 @@ function generateTechStackHome(techStack) {
 
 function generateCertificationsHome(certs) {
     if(!certs) return '';
-    // Show max 3 on home page
     return certs.slice(0, 3).map(cert => `
         <div class="cert-item">
             <div style="font-weight:600">${cert.title}</div>
@@ -684,45 +706,5 @@ function getCSS() {
             transform: translateY(-2px);
             background-color: #f0f0f0;
         }
-    `;
-}
-
-function getScripts() {
-    return `
-    <script>
-        feather.replace();
-        const toggle = document.getElementById('darkModeToggle');
-        const body = document.body;
-        const profilePic = document.getElementById('profile-pic');
-
-        const imgLight = "/profile.png";
-        const imgDark = "/profile-dark.png";
-        
-        function updateImage(isDark) {
-            if(profilePic) {
-                profilePic.src = isDark ? imgDark : imgLight;
-            }
-        }
-
-        // CHECK LOCAL STORAGE ON LOAD
-        if(localStorage.getItem('theme') === 'dark') {
-            body.classList.add('dark');
-            if(toggle) toggle.innerHTML = '<i data-feather="sun"></i>';
-            updateImage(true);
-        } else {
-            updateImage(false);
-        }
-
-        if(toggle) {
-            toggle.addEventListener('click', () => {
-                body.classList.toggle('dark');
-                const isDark = body.classList.contains('dark');
-                localStorage.setItem('theme', isDark ? 'dark' : 'light');
-                toggle.innerHTML = isDark ? '<i data-feather="sun"></i>' : '<i data-feather="moon"></i>';
-                updateImage(isDark);
-                feather.replace();
-            });
-        }
-    </script>
     `;
 }
