@@ -602,6 +602,13 @@ function generateProjectModals(projects) {
         </div>
     </div>
 
+     <div class="content-block-text" style="margin-top: 3rem;">
+        <h3>Tech Stack</h3>
+        <div class="tags-wrapper">
+            ${p.tags.map(tag => `<span class="tag">${tag}</span>`).join('')}
+        </div>
+    </div>
+
     <div class="content-block-media">
         <img src="${p.image}" alt="${p.title}" class="project-detail-img">
     </div>
@@ -622,12 +629,7 @@ function generateProjectModals(projects) {
         }
     }).join('') : '<p>No content details available.</p>'}
 
-    <div class="content-block-text" style="margin-top: 3rem;">
-        <h3>Tech Stack</h3>
-        <div class="tags-wrapper">
-            ${p.tags.map(tag => `<span class="tag">${tag}</span>`).join('')}
-        </div>
-    </div>
+   
 
 </div>
             </div>
