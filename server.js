@@ -415,7 +415,7 @@ function generateProjectModals(projects) {
                         <p>${p.modalContent.gist}</p>
                     </div>
 
-                    ${p.gallery &&QH p.gallery[0] ? `
+                    ${p.gallery && p.gallery[0] ? `
                     <div class="content-block-media">
                         <img src="${p.gallery[0]}" class="project-detail-img">
                     </div>` : ''}
