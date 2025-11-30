@@ -399,16 +399,25 @@ function generateProjectModals(projects) {
                     <div class="modal-header-simple">
                         <h1>${p.title}</h1>
                         <span class="subtitle">${p.subtitle}</span>
-                        <div class="modal-actions">
-                            <a href="${p.link}" target="_blank" class="btn btn-black">
-                                Visit Live Website <i data-feather="external-link"></i>
-                            </a>
-                        </div>
+                        
                     </div>
 
                     <div class="content-block-media">
                         <img src="${p.image}" alt="${p.title}" class="project-detail-img">
                     </div>
+
+                    <div class="modal-actions">
+                            <a href="${p.link}" target="_blank" class="btn btn-black">
+                                Visit Live Website <i data-feather="external-link"></i>
+                            </a>
+                        </div>
+
+                         <div style="margin-top: 2rem;">
+                            <h3>Tech Stack</h3>
+                            <div class="tags-wrapper">
+                                ${p.tags.map(tag => `<span class="tag">${tag}</span>`).join('')}
+                            </div>
+                        </div>
 
                     <div class="content-block-text">
                         <h3>The Story</h3>
@@ -437,12 +446,7 @@ function generateProjectModals(projects) {
                         <h3>The Result</h3>
                         <p>${p.modalContent.result}</p>
 
-                        <div style="margin-top: 2rem;">
-                            <h3>Tech Stack</h3>
-                            <div class="tags-wrapper">
-                                ${p.tags.map(tag => `<span class="tag">${tag}</span>`).join('')}
-                            </div>
-                        </div>
+                       
                     </div>
 
                 </div>
