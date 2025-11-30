@@ -10,14 +10,13 @@ const projectsData = [
         title: "Holiday Hunter",
         subtitle: "Global Holiday Tracking Dashboard",
         tags: ["Next.js", "Tailwind", "API Integration"],
-        // REPLACE THESE URLS WITH YOUR ACTUAL PROJECT SCREENSHOTS
         image: "https://placehold.co/600x400/1e1e1e/FFF?text=Holiday+Hunter+Preview", 
         description: "Interactive dashboard analyzing global public holidays to find the 'laziest' countries.",
         modalContent: {
-            gist: "I built a dashboard that gamifies global holiday tracking. It fetches real-time data to rank countries.",
-            goal: "To visualize monthly distributions and track upcoming breaks worldwide in a fun, engaging way.",
-            approach: "Used Next.js for the frontend and rapid API calls to fetch country data on the fly.",
-            result: "A fun tool that my classmates use to plan their 'slacking off' periods."
+            gist: "I built a dashboard that gamifies global holiday tracking.",
+            goal: "To visualize monthly distributions and track upcoming breaks worldwide.",
+            approach: "Used Next.js for the frontend and rapid API calls.",
+            result: "A fun tool used by students to plan 'slacking off' periods."
         }
     },
     {
@@ -26,15 +25,28 @@ const projectsData = [
         subtitle: "University Entrance Exam Tracker",
         tags: ["Next.js", "Supabase", "TypeScript"],
         image: "https://placehold.co/600x400/2563EB/FFF?text=CET+Tracker",
-        description: "Track College Entrance Test schedules, requirements, and announcements for top PH universities.",
+        description: "Track College Entrance Test schedules and requirements for top PH universities.",
         modalContent: {
             gist: "A centralized platform for students to track exam schedules.",
-            goal: "Simplify the chaotic college application process for Filipino students.",
-            approach: "Integrated Supabase for real-time announcements and data storage.",
-            result: "Helped over 500 students stay updated with exam dates."
+            goal: "Simplify the chaotic college application process.",
+            approach: "Integrated Supabase for real-time announcements.",
+            result: "Helped over 500 students stay updated."
         }
     },
-    // Add more projects here following the same format...
+    {
+        id: "pdao-portal",
+        title: "PDAO Analytics Portal",
+        subtitle: "Government GIS System",
+        tags: ["PHP", "MySQL", "LeafletJS"],
+        image: "https://placehold.co/600x400/10b981/FFF?text=PDAO+Analytics",
+        description: "Full-stack system with GIS mapping and analytics dashboard for government use.",
+        modalContent: {
+            gist: "A comprehensive system for the Persons with Disability Affairs Office.",
+            goal: "Automate demographic analysis and reporting.",
+            approach: "Built with raw PHP for legacy support and Leaflet for mapping.",
+            result: "Reduced reporting time by 40%."
+        }
+    }
 ];
 
 // Serve static files from the 'public' folder
@@ -197,43 +209,25 @@ function renderHome() {
             </div>
 
             <div class="section-header">
-                <div class="card-title"><i data-feather="grid"></i> Recent Projects</div>
-                <a href="/projects" class="view-all">View All <i data-feather="chevron-right" size="12"></i></a>
-            </div>
-            <div class="project-grid">
-                <a href="#" class="project-card">
-                    <div class="project-top">
-                        <h3>Holiday Hunter</h3>
-                        <span class="job-year">holiday-hunter.vercel.app</span>
-                    </div>
-                    <p>Interactive dashboard analyzing global public holidays to find the "laziest" countries and best party months.</p>
-                    <div class="tags-wrapper" style="margin-top:0.5rem">
-                        <span class="tag-sm">Next.js</span><span class="tag-sm">Recharts</span>
-                    </div>
-                </a>
+    <div class="card-title"><i data-feather="grid"></i> Featured Projects</div>
+    <a href="/projects" class="view-all">View All <i data-feather="chevron-right" size="12"></i></a>
+</div>
 
-                <a href="#" class="project-card">
-                    <div class="project-top">
-                        <h3>CET Tracker PH</h3>
-                        <span class="job-year">cet-tracker-app.vercel.app</span>
-                    </div>
-                    <p>Track College Entrance Test schedules, requirements, and announcements for top PH universities.</p>
-                    <div class="tags-wrapper" style="margin-top:0.5rem">
-                        <span class="tag-sm">Next.js</span><span class="tag-sm">Supabase</span>
-                    </div>
-                </a>
+<div class="project-grid-visual">
+    ${generateProjectCards(projectsData.slice(0, 3))} </div>
 
-                <a href="#" class="project-card">
-                    <div class="project-top">
-                        <h3>PDAO Analytics Portal</h3>
-                        <span class="job-year">pdaohelps.gov.ph</span>
-                    </div>
-                    <p>Full-stack system with GIS mapping and analytics dashboard for government use.</p>
-                    <div class="tags-wrapper" style="margin-top:0.5rem">
-                        <span class="tag-sm">PHP</span><span class="tag-sm">MySQL</span>
-                    </div>
-                </a>
-            </div>
+${generateProjectModals(projectsData)}
+<script>
+    function openModal(id) {
+        document.getElementById('modal-' + id).classList.add('active');
+        document.body.style.overflow = 'hidden'; 
+        feather.replace();
+    }
+    function closeModal(event, id) {
+        document.getElementById('modal-' + id).classList.remove('active');
+        document.body.style.overflow = 'auto'; 
+    }
+</script>
 
             <div class="bottom-grid">
                 <div class="card">
@@ -325,72 +319,16 @@ function renderTechStack() {
 }
 
 function renderProjects() {
-    // 1. Generate the Grid Cards
-    const projectsHtml = projectsData.map(p => `
-        <div class="project-card-visual" onclick="openModal('${p.id}')">
-            <div class="card-img-container">
-                <img src="${p.image}" alt="${p.title}" class="card-img">
-            </div>
-            <div class="card-content">
-                <div class="project-top">
-                    <h3>${p.title}</h3>
-                </div>
-                <p>${p.description}</p>
-                <div class="tags-wrapper" style="margin-top:1rem">
-                    ${p.tags.map(tag => `<span class="tag-sm">${tag}</span>`).join('')}
-                </div>
-            </div>
-        </div>
-    `).join('');
-
-    // 2. Generate the Modals (Hidden by default)
-    const modalsHtml = projectsData.map(p => `
-        <div id="modal-${p.id}" class="modal-overlay" onclick="closeModal(event, '${p.id}')">
-            <div class="modal-content" onclick="event.stopPropagation()">
-                <button class="close-btn" onclick="closeModal(null, '${p.id}')"><i data-feather="x"></i></button>
-                
-                <div class="modal-header">
-                    <span class="modal-subtitle">${p.subtitle}</span>
-                    <h2>${p.title}</h2>
-                    <div class="tags-wrapper">
-                        ${p.tags.map(tag => `<span class="tag">${tag}</span>`).join('')}
-                    </div>
-                </div>
-
-                <div class="modal-hero-img">
-                    <img src="${p.image}" alt="${p.title}">
-                </div>
-
-                <div class="modal-body">
-                    <div class="modal-section">
-                        <h3>The Gist</h3>
-                        <p>${p.modalContent.gist}</p>
-                    </div>
-                    <div class="modal-section">
-                        <h3>The Goal</h3>
-                        <p>${p.modalContent.goal}</p>
-                    </div>
-                    <div class="modal-section">
-                        <h3>Our Approach</h3>
-                        <p>${p.modalContent.approach}</p>
-                    </div>
-                     <div class="modal-section">
-                        <h3>The Result</h3>
-                        <p>${p.modalContent.result}</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-    `).join('');
-
     return renderInnerPage("Recent Projects", `
         <p style="margin-bottom: 2rem; color: var(--text-muted);">
             A selection of projects I've built, from web applications to side projects that solve real problems.
         </p>
+        
         <div class="project-grid-visual">
-            ${projectsHtml}
+            ${generateProjectCards(projectsData)}
         </div>
-        ${modalsHtml}
+        
+        ${generateProjectModals(projectsData)}
         
         <script>
             function openModal(id) {
@@ -401,13 +339,85 @@ function renderProjects() {
             
             function closeModal(event, id) {
                 // If event is null (close button) or target is the overlay (background click)
-                if (!event || event.target.id === 'modal-' + id) {
-                    document.getElementById('modal-' + id).classList.remove('active');
-                    document.body.style.overflow = 'auto'; // Restore scrolling
+                // Note: The close button in the full-screen modal passes null, so it always closes.
+                const modal = document.getElementById('modal-' + id);
+                if (modal) {
+                     modal.classList.remove('active');
+                     document.body.style.overflow = 'auto'; // Restore scrolling
                 }
             }
         </script>
     `);
+}
+
+// --- HELPER FUNCTIONS ---
+function generateProjectCards(projects) {
+    return projects.map(p => `
+        <div class="project-card-visual" onclick="openModal('${p.id}')">
+            <div class="card-img-container">
+                <img src="${p.image}" alt="${p.title}" class="card-img">
+            </div>
+            <div class="card-content">
+                <div class="project-top">
+                    <h3>${p.title}</h3>
+                </div>
+                <p>${p.description}</p>
+                <div class="tags-wrapper" style="margin-top:auto; padding-top:1rem;">
+                    ${p.tags.map(tag => `<span class="tag-sm">${tag}</span>`).join('')}
+                </div>
+            </div>
+        </div>
+    `).join('');
+}
+
+function generateProjectModals(projects) {
+    return projects.map(p => `
+        <div id="modal-${p.id}" class="modal-overlay">
+            <button class="close-btn-fixed" onclick="closeModal(null, '${p.id}')">
+                <i data-feather="x"></i> Close
+            </button>
+            
+            <div class="modal-content-full">
+                <div class="modal-hero-full" style="background-image: url('${p.image}')">
+                    <div class="hero-overlay">
+                        <h1>${p.title}</h1>
+                        <span class="hero-subtitle">${p.subtitle}</span>
+                    </div>
+                </div>
+
+                <div class="modal-body-full">
+                    <div class="modal-grid">
+                        <div class="modal-left">
+                            <div class="modal-section">
+                                <h3>The Gist</h3>
+                                <p>${p.modalContent.gist}</p>
+                            </div>
+                            <div class="modal-section">
+                                <h3>The Goal</h3>
+                                <p>${p.modalContent.goal}</p>
+                            </div>
+                        </div>
+                        <div class="modal-right">
+                             <div class="modal-section">
+                                <h3>Tech Stack</h3>
+                                <div class="tags-wrapper">
+                                    ${p.tags.map(tag => `<span class="tag">${tag}</span>`).join('')}
+                                </div>
+                            </div>
+                            <div class="modal-section">
+                                <h3>Our Approach</h3>
+                                <p>${p.modalContent.approach}</p>
+                            </div>
+                             <div class="modal-section">
+                                <h3>The Result</h3>
+                                <p>${p.modalContent.result}</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `).join('');
 }
 
 function renderCertifications() {
@@ -558,66 +568,68 @@ function getCSS() {
         .footer-clickable:hover { color: var(--text-main); text-decoration:underline; }
         .copyright { display: flex; flex-direction: column; align-items: center; text-align: center; color: var(--text-muted); font-size: 0.85rem; padding-bottom: 2rem; }
         /* --- VISUAL CARD GRID --- */
+/* --- VISUAL CARD STYLES (Used on Home & Projects) --- */
 .project-grid-visual {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-    gap: 2rem;
-    margin-bottom: 3rem;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2rem;
 }
 
 .project-card-visual {
     background: var(--bg-card);
     border: 1px solid var(--border);
-    border-radius: 16px;
+    border-radius: 12px;
     overflow: hidden;
-    transition: transform 0.2s, box-shadow 0.2s;
     cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.2s;
     display: flex;
     flex-direction: column;
+    height: 100%;
 }
 
 .project-card-visual:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 10px 20px rgba(0,0,0,0.1);
-    border-color: var(--text-muted);
+    transform: translateY(-4px);
+    box-shadow: 0 12px 24px rgba(0,0,0,0.1);
 }
 
 .card-img-container {
-    width: 100%;
-    height: 200px;
-    background: #f0f0f0;
-    border-bottom: 1px solid var(--border);
+    height: 180px;
+    background: #e5e7eb;
+    overflow: hidden;
 }
 
 .card-img {
     width: 100%;
     height: 100%;
     object-fit: cover;
+    transition: transform 0.5s;
+}
+
+.project-card-visual:hover .card-img {
+    transform: scale(1.05); /* Slight zoom on hover */
 }
 
 .card-content {
-    padding: 1.5rem;
+    padding: 1.25rem;
     flex: 1;
     display: flex;
     flex-direction: column;
 }
 
-/* --- MODAL STYLES (The Detail View) --- */
+/* --- FULL PAGE MODAL STYLES --- */
 .modal-overlay {
     position: fixed;
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
-    background: rgba(0, 0, 0, 0.85); /* Dark dimming background */
-    z-index: 1000;
-    display: flex;
-    justify-content: center;
-    align-items: center;
+    z-index: 2000;
+    background: var(--bg-page); /* Opaque background */
     opacity: 0;
     visibility: hidden;
-    transition: opacity 0.3s;
-    backdrop-filter: blur(5px);
+    overflow-y: auto; /* Allow scrolling within the full page */
+    transition: opacity 0.3s ease, visibility 0.3s;
 }
 
 .modal-overlay.active {
@@ -625,87 +637,87 @@ function getCSS() {
     visibility: visible;
 }
 
-.modal-content {
+/* This container mimics a full page layout */
+.modal-content-full {
+    width: 100%;
+    min-height: 100vh;
     background: var(--bg-page);
-    width: 90%;
-    max-width: 900px; /* Wide layout like your screenshot */
-    max-height: 90vh;
-    overflow-y: auto;
-    border-radius: 20px;
     position: relative;
-    padding: 3rem;
-    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
-    border: 1px solid var(--border);
+    padding-bottom: 4rem;
 }
 
-.close-btn {
-    position: absolute;
-    top: 1.5rem;
-    right: 1.5rem;
-    background: var(--bg-card);
-    border: 1px solid var(--border);
-    border-radius: 50%;
-    padding: 0.5rem;
+.close-btn-fixed {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background: rgba(0, 0, 0, 0.6);
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 30px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
     cursor: pointer;
-    color: var(--text-main);
-    transition: 0.2s;
-}
-
-.close-btn:hover {
-    background: var(--hover);
-    transform: rotate(90deg);
-}
-
-.modal-header {
-    text-align: center;
-    margin-bottom: 2rem;
-}
-
-.modal-subtitle {
-    color: var(--badge-blue);
+    z-index: 2005;
+    backdrop-filter: blur(4px);
     font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    font-size: 0.8rem;
+    transition: background 0.2s;
 }
 
-.modal-header h2 {
-    font-size: 2.5rem;
-    margin: 0.5rem 0 1rem 0;
+.close-btn-fixed:hover {
+    background: rgba(0, 0, 0, 0.8);
 }
 
-.modal-hero-img {
+/* Hero Section inside Modal */
+.modal-hero-full {
+    height: 50vh; /* Takes up half the screen height */
     width: 100%;
-    border-radius: 12px;
-    overflow: hidden;
-    margin-bottom: 3rem;
+    background-size: cover;
+    background-position: center;
+    position: relative;
+    display: flex;
+    align-items: flex-end;
 }
 
-.modal-hero-img img {
+.hero-overlay {
+    background: linear-gradient(to top, rgba(0,0,0,0.9), transparent);
     width: 100%;
-    height: auto;
+    padding: 3rem 10%;
+    color: white;
+}
+
+.hero-overlay h1 {
+    font-size: 3rem;
+    margin: 0;
+    line-height: 1.1;
+}
+
+.hero-subtitle {
+    font-size: 1.1rem;
+    opacity: 0.9;
+    font-weight: 500;
     display: block;
+    margin-top: 10px;
 }
 
-.modal-body {
-    max-width: 700px;
+/* Content Body */
+.modal-body-full {
+    max-width: 1000px;
     margin: 0 auto;
+    padding: 3rem 2rem;
 }
 
-.modal-section {
-    margin-bottom: 2.5rem;
+.modal-grid {
+    display: grid;
+    grid-template-columns: 1.5fr 1fr;
+    gap: 4rem;
 }
 
-.modal-section h3 {
-    font-size: 1.2rem;
-    font-weight: 700;
-    margin-bottom: 0.5rem;
-    color: var(--text-main);
-}
-
-/* Adjust tag centering for modal */
-.modal-header .tags-wrapper {
-    justify-content: center;
+@media (max-width: 768px) {
+    .modal-grid { grid-template-columns: 1fr; gap: 2rem; }
+    .hero-overlay h1 { font-size: 2rem; }
+    .modal-hero-full { height: 40vh; }
 }
     `;
 }
