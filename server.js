@@ -42,7 +42,7 @@ const projectsData = [
         title: "PDAO Analytics Portal",
         subtitle: "Government GIS System",
         tags: ["PHP", "MySQL", "LeafletJS"],
-        image: "https://placehold.co/600x400/10b981/FFF?text=PDAO+Analytics",
+        image: "https://i.imgur.com/4rsbRDu.png",
         link: "https://pdaohelps.online",
         description: "Full-stack system with GIS mapping and analytics dashboard for government use.",
         modalContent: {
