@@ -18,11 +18,12 @@ const ProjectSchema = new mongoose.Schema({
     id: String,
     title: String,
     subtitle: String,
-    image: String, // Cover Image
+    image: String,
     link: String,
     tags: [String],
+    description: String, // <--- ADD THIS LINE BACK
     
-    // NEW: This array holds the "iPhone Note" flow
+    // Your dynamic blocks
     contentBlocks: [
         {
             type: { type: String, enum: ['text', 'image'] }, 
@@ -168,6 +169,10 @@ app.get('/admin/add', checkAuth, (req, res) => {
                 <div style="margin-bottom:1rem"><label>ID (Unique)</label><input name="id" required placeholder="e.g. holiday-hunter"></div>
                 <div style="margin-bottom:1rem"><label>Title</label><input name="title" required></div>
                 <div style="margin-bottom:1rem"><label>Subtitle</label><input name="subtitle"></div>
+                <div style="margin-bottom:1rem">
+    <label>Short Description (For Home Page Card)</label>
+    <textarea name="description" rows="3" required placeholder="A short summary that appears on the home page card..."></textarea>
+</div>
                 <div style="margin-bottom:1rem"><label>Cover Image URL</label><input name="image" required></div>
                 <div style="margin-bottom:1rem"><label>Live Link</label><input name="link"></div>
                 <div style="margin-bottom:1rem"><label>Tags (comma separated)</label><input name="tags"></div>
@@ -223,14 +228,15 @@ app.post('/admin/add', checkAuth, async (req, res) => {
         const contentBlocks = Array.isArray(rawBlocks) ? rawBlocks : Object.values(rawBlocks);
 
         const newProject = new Project({
-            id: req.body.id,
-            title: req.body.title,
-            subtitle: req.body.subtitle,
-            image: req.body.image,
-            link: req.body.link,
-            tags: req.body.tags ? req.body.tags.split(',').map(t => t.trim()) : [],
-            contentBlocks: contentBlocks
-        });
+    id: req.body.id,
+    title: req.body.title,
+    subtitle: req.body.subtitle,
+    image: req.body.image,
+    link: req.body.link,
+    description: req.body.description, // <--- ADD THIS LINE
+    tags: req.body.tags ? req.body.tags.split(',').map(t => t.trim()) : [],
+    contentBlocks: contentBlocks
+});
         
         await newProject.save();
         res.redirect('/admin');
