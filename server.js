@@ -1,4 +1,4 @@
-require('dotenv').config(); // Load environment variables
+require('dotenv').config();
 const express = require('express');
 const mongoose = require('mongoose');
 const path = require('path');
@@ -10,7 +10,7 @@ mongoose.connect(process.env.MONGO_URI)
   .then(() => console.log('✅ Connected to MongoDB Atlas'))
   .catch(err => console.error('❌ DB Connection Error:', err));
 
-// --- 2. DEFINE THE SCHEMA ---
+// --- 2. DEFINE SCHEMAS ---
 const ProjectSchema = new mongoose.Schema({
     id: String,
     title: String,
@@ -19,20 +19,37 @@ const ProjectSchema = new mongoose.Schema({
     image: String,
     link: String,
     description: String,
-    modalContent: {
-        gist: String,
-        goal: String,
-        approach: String,
-        result: String
-    }
+    modalContent: { gist: String, goal: String, approach: String, result: String }
 });
 
+const ExperienceSchema = new mongoose.Schema({
+    role: String,
+    company: String,
+    year: String
+});
+
+const CertificationSchema = new mongoose.Schema({
+    title: String,
+    issuer: String,
+    year: String,
+    description: String
+});
+
+const TechStackSchema = new mongoose.Schema({
+    category: String,
+    items: [String]
+});
+
+// --- 3. CREATE MODELS ---
 const Project = mongoose.model('Project', ProjectSchema);
+const Experience = mongoose.model('Experience', ExperienceSchema);
+const Certification = mongoose.model('Certification', CertificationSchema);
+const TechStack = mongoose.model('TechStack', TechStackSchema, 'tech_stack'); // Explicit collection name
 
 // Serve static files
 app.use(express.static(path.join(__dirname, 'public')));
 
-// --- STUDENT DATA (Still static for now) ---
+// --- STUDENT DATA (Static info) ---
 const name = "Clarence Neil Meneses";
 const role = "IT Student \\ Full-Stack Developer";
 const location = "Tanauan City, Batangas";
@@ -41,40 +58,53 @@ const section = "BA 4102";
 
 // --- ROUTES ---
 
-// 1. HOME ROUTE (Async)
+// 1. HOME ROUTE - Fetches EVERYTHING
 app.get('/', async (req, res) => { 
     try {
-        const projects = await Project.find({}); // Fetch from DB
-        res.send(renderHome(projects)); 
+        const [projects, experience, certifications, techStack] = await Promise.all([
+            Project.find({}),
+            Experience.find({}), // Timeline is usually sorted, but default order is fine for now
+            Certification.find({}),
+            TechStack.find({})
+        ]);
+        
+        res.send(renderHome(projects, experience, certifications, techStack)); 
     } catch (err) {
         console.error(err);
         res.status(500).send("Database Error");
     }
 });
 
-// 2. TECH STACK (Static)
-app.get('/tech-stack', (req, res) => { res.send(renderTechStack()); });
-
-// 3. PROJECTS ROUTE (Async)
-app.get('/projects', async (req, res) => { 
+// 2. TECH STACK PAGE
+app.get('/tech-stack', async (req, res) => { 
     try {
-        const projects = await Project.find({}); // Fetch from DB
-        res.send(renderProjects(projects));
-    } catch (err) {
-        res.status(500).send("Database Error");
-    }
+        const techStack = await TechStack.find({});
+        res.send(renderTechStackPage(techStack));
+    } catch (err) { res.status(500).send("Error"); }
 });
 
-// 4. CERTIFICATIONS (Static)
-app.get('/certifications', (req, res) => { res.send(renderCertifications()); });
+// 3. PROJECTS PAGE
+app.get('/projects', async (req, res) => { 
+    try {
+        const projects = await Project.find({});
+        res.send(renderProjectsPage(projects));
+    } catch (err) { res.status(500).send("Error"); }
+});
+
+// 4. CERTIFICATIONS PAGE
+app.get('/certifications', async (req, res) => { 
+    try {
+        const certifications = await Certification.find({});
+        res.send(renderCertificationsPage(certifications));
+    } catch (err) { res.status(500).send("Error"); }
+});
 
 app.listen(port, () => { console.log(`Server is running on port ${port}`); });
 
 
 // --- HTML GENERATORS ---
-// Updated to accept 'projects' argument
 
-function renderHome(projects) {
+function renderHome(projects, experience, certifications, techStack) {
     return `
     <!DOCTYPE html>
     <html lang="en">
@@ -126,8 +156,6 @@ function renderHome(projects) {
                         <div class="card-title"><i data-feather="user"></i> About</div>
                         <p>
                             I'm a full-stack IT student specializing in developing solutions with JavaScript, PHP, and Python. I work on projects including building modern web applications, data analytics dashboards, and system testing.
-                            <br><br>
-                            Lately, I've been diving deeper into the world of Data Analytics using Power BI and integrating GIS mapping into web systems.
                         </p>
                     </div>
 
@@ -136,14 +164,7 @@ function renderHome(projects) {
                             <div class="card-title"><i data-feather="cpu"></i> Tech Stack</div>
                             <a href="/tech-stack" class="view-all">View All <i data-feather="chevron-right" size="12"></i></a>
                         </div>
-                        <div class="stack-category">Frontend</div>
-                        <div class="tags-wrapper">
-                            <span class="tag">JavaScript</span><span class="tag">HTML5</span><span class="tag">CSS3</span><span class="tag">Bootstrap</span><span class="tag">Figma</span>
-                        </div>
-                        <div class="stack-category">Backend & Data</div>
-                        <div class="tags-wrapper">
-                            <span class="tag">PHP</span><span class="tag">MySQL</span><span class="tag">Python</span><span class="tag">Power BI</span>
-                        </div>
+                        ${generateTechStackHome(techStack)}
                     </div>
 
                      <div class="card">
@@ -163,46 +184,7 @@ function renderHome(projects) {
 
                     <div class="card">
                         <div class="card-title"><i data-feather="briefcase"></i> Experience</div>
-                        <div class="timeline-item">
-                            <div class="timeline-dot"></div>
-                            <div class="timeline-content">
-                                <div class="job-role">Developer</div>
-                                <div class="job-company">Sto. Tomas PDAO (Capstone)</div>
-                                <div class="job-year">2025</div>
-                            </div>
-                        </div>
-                        <div class="timeline-item">
-                            <div class="timeline-dot"></div>
-                            <div class="timeline-content">
-                                <div class="job-role">Freelance UI Designer</div>
-                                <div class="job-company">THEEA Agency (Australia)</div>
-                                <div class="job-year">2025</div>
-                            </div>
-                        </div>
-                        <div class="timeline-item">
-                            <div class="timeline-dot"></div>
-                            <div class="timeline-content">
-                                <div class="job-role">Commissioned Artist</div>
-                                <div class="job-company">Freelance (US Clients)</div>
-                                <div class="job-year">2024</div>
-                            </div>
-                        </div>
-                        <div class="timeline-item">
-                            <div class="timeline-dot"></div>
-                            <div class="timeline-content">
-                                <div class="job-role">Student</div>
-                                <div class="job-company">Batangas State University</div>
-                                <div class="job-year">2022</div>
-                            </div>
-                        </div>
-                         <div class="timeline-item">
-                            <div class="timeline-dot"></div>
-                            <div class="timeline-content">
-                                <div class="job-role">Hello World! 👋</div>
-                                <div class="job-company">Wrote my first line of code</div>
-                                <div class="job-year">2022</div>
-                            </div>
-                        </div>
+                        ${generateExperience(experience)}
                     </div>
                 </div>
             </div>
@@ -224,19 +206,9 @@ function renderHome(projects) {
                         <div class="card-title"><i data-feather="check-circle"></i> Certifications</div>
                         <a href="/certifications" class="view-all">View All <i data-feather="chevron-right" size="12"></i></a>
                     </div>
-                    <div class="cert-item">
-                        <div style="font-weight:600">Microsoft Power BI Certification</div>
-                        <div style="font-size:0.8rem; color:var(--text-muted)">Microsoft</div>
-                    </div>
-                    <div class="cert-item">
-                        <div style="font-weight:600">Intro to Cybersecurity</div>
-                        <div style="font-size:0.8rem; color:var(--text-muted)">Cisco Networking Academy</div>
-                    </div>
-                    <div class="cert-item">
-                        <div style="font-weight:600">Tech Start-up Fundamentals</div>
-                        <div style="font-size:0.8rem; color:var(--text-muted)">BatStateU & HCMUTE</div>
-                    </div>
+                    ${generateCertificationsHome(certifications)}
                 </div>
+                
                 <div class="card">
                      <div class="card-title"><i data-feather="message-square"></i> Recommendations</div>
                      <div style="height: 120px; display:flex; align-items:center; justify-content:center; color:var(--text-muted); gap:5px;">
@@ -246,29 +218,6 @@ function renderHome(projects) {
                         <span style="width:6px; height:6px; background:#ccc; border-radius:50%"></span>
                         <span style="width:6px; height:6px; background:#ccc; border-radius:50%"></span>
                      </div>
-                </div>
-            </div>
-
-            <div class="footer-links-grid">
-                <div class="footer-col">
-                    <small><i data-feather="users"></i> A member of</small>
-                    <div class="footer-link-item">BatStateU CICS</div>
-                    <div class="footer-link-item">JPLPC Students</div>
-                </div>
-                <div class="footer-col">
-                    <small><i data-feather="link"></i> Social Links</small>
-                    <a href="https://www.linkedin.com/" target="_blank" class="footer-link-item footer-clickable"><i data-feather="linkedin" size="12"></i> LinkedIn</a>
-                    <a href="https://github.com/" target="_blank" class="footer-link-item footer-clickable"><i data-feather="github" size="12"></i> GitHub</a>
-                    <a href="https://instagram.com/" target="_blank" class="footer-link-item footer-clickable"><i data-feather="instagram" size="12"></i> Instagram</a>
-                </div>
-                <div class="footer-col">
-                    <small><i data-feather="mic"></i> Availability</small>
-                    <div class="footer-link-item">Open for Inquiries</div>
-                </div>
-                <div class="footer-col">
-                    <small><i data-feather="mail"></i> Contact</small>
-                    <a href="mailto:${email}" class="footer-link-item footer-clickable">${email}</a>
-                    <a href="#" class="footer-link-item footer-clickable" style="margin-top:5px; font-weight:600;">Schedule a Call <i data-feather="chevron-right" size="12"></i></a>
                 </div>
             </div>
 
@@ -295,18 +244,85 @@ function renderHome(projects) {
     `;
 }
 
-function renderProjects(projects) {
+// --- GENERATOR FUNCTIONS (DYNAMIC) ---
+
+function generateExperience(experience) {
+    if(!experience) return '';
+    return experience.map(job => `
+        <div class="timeline-item">
+            <div class="timeline-dot"></div>
+            <div class="timeline-content">
+                <div class="job-role">${job.role}</div>
+                <div class="job-company">${job.company}</div>
+                <div class="job-year">${job.year}</div>
+            </div>
+        </div>
+    `).join('');
+}
+
+function generateTechStackHome(techStack) {
+    if(!techStack) return '';
+    // Limit to first 2 categories on home for layout safety
+    return techStack.slice(0, 2).map(stack => `
+        <div class="stack-category">${stack.category}</div>
+        <div class="tags-wrapper">
+            ${stack.items.map(item => `<span class="tag">${item}</span>`).join('')}
+        </div>
+    `).join('');
+}
+
+function generateCertificationsHome(certs) {
+    if(!certs) return '';
+    // Show max 3 on home page
+    return certs.slice(0, 3).map(cert => `
+        <div class="cert-item">
+            <div style="font-weight:600">${cert.title}</div>
+            <div style="font-size:0.8rem; color:var(--text-muted)">${cert.issuer}</div>
+        </div>
+    `).join('');
+}
+
+
+// --- INNER PAGE RENDERERS ---
+
+function renderTechStackPage(techStack) {
+    const content = techStack.map(stack => `
+        <div class="stack-section">
+            <div class="stack-title">${stack.category}</div>
+            <div class="pill-grid">
+                ${stack.items.map(item => `<div class="pill-large">${item}</div>`).join('')}
+            </div>
+        </div>
+    `).join('');
+    
+    return renderInnerPage("Tech Stack", content);
+}
+
+function renderCertificationsPage(certifications) {
+    const content = `
+        <div class="card">
+            ${certifications.map((cert, index) => `
+                <div class="cert-item">
+                    <div style="font-weight:700; font-size:1.1rem">${cert.title}</div>
+                    <div style="color:var(--text-muted)">${cert.issuer} • ${cert.year}</div>
+                    <p>${cert.description}</p>
+                </div>
+                ${index < certifications.length - 1 ? '<hr style="border:0; border-top:1px solid var(--border); margin:1rem 0;">' : ''}
+            `).join('')}
+        </div>
+    `;
+    return renderInnerPage("Certifications", content);
+}
+
+function renderProjectsPage(projects) {
     return renderInnerPage("Recent Projects", `
         <p style="margin-bottom: 2rem; color: var(--text-muted);">
             A selection of projects I've built, from web applications to side projects that solve real problems.
         </p>
-        
         <div class="project-grid-visual">
             ${generateProjectCards(projects)}
         </div>
-        
         ${generateProjectModals(projects)}
-        
         <script>
             function openModal(id) {
                 document.getElementById('modal-' + id).classList.add('active');
@@ -324,6 +340,7 @@ function renderProjects(projects) {
     `);
 }
 
+// --- SHARED HELPERS ---
 function generateProjectCards(projects) {
     if(!projects || projects.length === 0) return '<p>No projects found.</p>';
     return projects.map(p => `
@@ -392,45 +409,6 @@ function generateProjectModals(projects) {
             </div>
         </div>
     `).join('');
-}
-
-// ... (KEEP THE REST: renderInnerPage, renderTechStack, renderCertifications, getCSS, getScripts SAME AS BEFORE)
-// For brevity, I am not repeating the bottom half of the file if it hasn't changed.
-// PASTE THE REST OF YOUR OLD FILE (functions after generateProjectModals) BELOW HERE.
-
-function renderTechStack() {
-    return renderInnerPage("Tech Stack", `
-        <div class="stack-section">
-            <div class="stack-title">Frontend</div>
-            <div class="pill-grid">
-                <div class="pill-large">JavaScript</div><div class="pill-large">HTML5</div><div class="pill-large">CSS3</div><div class="pill-large">Bootstrap</div><div class="pill-large">Tailwind CSS</div><div class="pill-large">Figma</div>
-            </div>
-        </div>
-        <div class="stack-section">
-            <div class="stack-title">Backend</div>
-            <div class="pill-grid">
-                <div class="pill-large">PHP</div><div class="pill-large">Node.js</div><div class="pill-large">Express.js</div><div class="pill-large">Python</div><div class="pill-large">MySQL</div>
-            </div>
-        </div>
-    `);
-}
-
-function renderCertifications() {
-    return renderInnerPage("Certifications", `
-        <div class="card">
-            <div class="cert-item">
-                <div style="font-weight:700; font-size:1.1rem">Microsoft Power BI Certification</div>
-                <div style="color:var(--text-muted)">Microsoft • 2025</div>
-                <p>Validated skills in data visualization, modeling, and analytics.</p>
-            </div>
-            <hr style="border:0; border-top:1px solid var(--border); margin:1rem 0;">
-            <div class="cert-item">
-                <div style="font-weight:700; font-size:1.1rem">Introduction to Cybersecurity</div>
-                <div style="color:var(--text-muted)">Cisco Networking Academy • 2024</div>
-                <p>Foundational knowledge in network security and threat protection.</p>
-            </div>
-        </div>
-    `);
 }
 
 function renderInnerPage(title, content) {
@@ -716,6 +694,7 @@ function getScripts() {
         const toggle = document.getElementById('darkModeToggle');
         const body = document.body;
         const profilePic = document.getElementById('profile-pic');
+
         const imgLight = "/profile.png";
         const imgDark = "/profile-dark.png";
         
@@ -724,6 +703,7 @@ function getScripts() {
                 profilePic.src = isDark ? imgDark : imgLight;
             }
         }
+
         // CHECK LOCAL STORAGE ON LOAD
         if(localStorage.getItem('theme') === 'dark') {
             body.classList.add('dark');
@@ -732,6 +712,7 @@ function getScripts() {
         } else {
             updateImage(false);
         }
+
         if(toggle) {
             toggle.addEventListener('click', () => {
                 body.classList.toggle('dark');
