@@ -708,3 +708,43 @@ function getCSS() {
         }
     `;
 }
+
+function getScripts() {
+    return `
+    <script>
+        feather.replace();
+        const toggle = document.getElementById('darkModeToggle');
+        const body = document.body;
+        const profilePic = document.getElementById('profile-pic');
+
+        const imgLight = "/profile.png";
+        const imgDark = "/profile-dark.png";
+        
+        function updateImage(isDark) {
+            if(profilePic) {
+                profilePic.src = isDark ? imgDark : imgLight;
+            }
+        }
+
+        // CHECK LOCAL STORAGE ON LOAD
+        if(localStorage.getItem('theme') === 'dark') {
+            body.classList.add('dark');
+            if(toggle) toggle.innerHTML = '<i data-feather="sun"></i>';
+            updateImage(true);
+        } else {
+            updateImage(false);
+        }
+
+        if(toggle) {
+            toggle.addEventListener('click', () => {
+                body.classList.toggle('dark');
+                const isDark = body.classList.contains('dark');
+                localStorage.setItem('theme', isDark ? 'dark' : 'light');
+                toggle.innerHTML = isDark ? '<i data-feather="sun"></i>' : '<i data-feather="moon"></i>';
+                updateImage(isDark);
+                feather.replace();
+            });
+        }
+    </script>
+    `;
+}
