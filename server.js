@@ -18,12 +18,17 @@ const ProjectSchema = new mongoose.Schema({
     id: String,
     title: String,
     subtitle: String,
-    tags: [String],
-    image: String,
-    gallery: [String],
+    image: String, // Cover Image
     link: String,
-    description: String,
-    modalContent: { gist: String, goal: String, approach: String, result: String }
+    tags: [String],
+    
+    // NEW: This array holds the "iPhone Note" flow
+    contentBlocks: [
+        {
+            type: { type: String, enum: ['text', 'image'] }, 
+            value: String 
+        }
+    ]
 });
 
 const ExperienceSchema = new mongoose.Schema({
@@ -134,7 +139,7 @@ app.get('/admin', checkAuth, async (req, res) => {
     res.send(html);
 });
 
-// 2. SHOW ADD FORM
+// 2. SHOW DYNAMIC ADD FORM
 app.get('/admin/add', checkAuth, (req, res) => {
     res.send(`
     <!DOCTYPE html>
@@ -142,58 +147,95 @@ app.get('/admin/add', checkAuth, (req, res) => {
     <head>
         <title>Add Project</title>
         <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
-        <style>body { font-family: 'Inter', sans-serif; padding: 2rem; max-width: 600px; margin: 0 auto; }</style>
+        <style>
+            body { font-family: 'Inter', sans-serif; padding: 2rem; max-width: 700px; margin: 0 auto; background: #f9fafb; }
+            .container { background: white; padding: 2rem; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
+            h1 { margin-top: 0; }
+            label { display: block; margin-bottom: 0.5rem; font-weight: 600; font-size: 0.9rem; }
+            input, textarea { width: 100%; padding: 0.8rem; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box; font-family: inherit; }
+            .section-block { background: #f3f4f6; padding: 1rem; border-radius: 8px; margin-bottom: 1rem; position: relative; border: 1px solid #e5e7eb; }
+            .btn { cursor: pointer; padding: 10px 15px; border-radius: 6px; border: none; font-weight: 600; font-size: 0.9rem; }
+            .btn-black { background: #111; color: white; width: 100%; padding: 12px; margin-top: 1rem; }
+            .btn-add { background: #fff; border: 1px solid #ccc; margin-right: 5px; }
+            .btn-remove { position: absolute; top: 10px; right: 10px; background: #ef4444; color: white; padding: 4px 8px; font-size: 0.8rem; }
+            .controls { margin: 1.5rem 0; padding: 1rem; border: 2px dashed #ccc; text-align: center; border-radius: 8px; }
+        </style>
     </head>
     <body>
-        <h1>Add New Project</h1>
-        <form action="/admin/add" method="POST">
-            <div style="margin-bottom:1rem"><label>ID (unique, e.g. 'my-app')</label><input name="id" required></div>
-            <div style="margin-bottom:1rem"><label>Title</label><input name="title" required></div>
-            <div style="margin-bottom:1rem"><label>Subtitle</label><input name="subtitle"></div>
-            <div style="margin-bottom:1rem"><label>Main Image URL</label><input name="image" required></div>
-            <div style="margin-bottom:1rem"><label>Gallery Image 1 URL</label><input name="gallery1"></div>
-            <div style="margin-bottom:1rem"><label>Gallery Image 2 URL</label><input name="gallery2"></div>
-            <div style="margin-bottom:1rem"><label>Tags (comma separated)</label><input name="tags"></div>
-            <div style="margin-bottom:1rem"><label>Live Link</label><input name="link"></div>
-            
-            <h3>Modal Content</h3>
-            <div style="margin-bottom:1rem"><label>The Story (Gist)</label><textarea name="gist" rows="3"></textarea></div>
-            <div style="margin-bottom:1rem"><label>The Goal</label><textarea name="goal" rows="3"></textarea></div>
-            <div style="margin-bottom:1rem"><label>The Approach</label><textarea name="approach" rows="3"></textarea></div>
-            <div style="margin-bottom:1rem"><label>The Result</label><textarea name="result" rows="3"></textarea></div>
+        <div class="container">
+            <h1>Add Project (Dynamic)</h1>
+            <form action="/admin/add" method="POST">
+                <div style="margin-bottom:1rem"><label>ID (Unique)</label><input name="id" required placeholder="e.g. holiday-hunter"></div>
+                <div style="margin-bottom:1rem"><label>Title</label><input name="title" required></div>
+                <div style="margin-bottom:1rem"><label>Subtitle</label><input name="subtitle"></div>
+                <div style="margin-bottom:1rem"><label>Cover Image URL</label><input name="image" required></div>
+                <div style="margin-bottom:1rem"><label>Live Link</label><input name="link"></div>
+                <div style="margin-bottom:1rem"><label>Tags (comma separated)</label><input name="tags"></div>
 
-            <button type="submit" style="background: #000; color: #fff; padding: 10px 20px; border: none; border-radius: 6px; cursor: pointer;">Save Project</button>
-        </form>
+                <hr style="margin: 2rem 0; border: 0; border-top: 1px solid #eee;">
+                
+                <h3>Project Content</h3>
+                <div id="blocks-container">
+                    </div>
+
+                <div class="controls">
+                    <button type="button" class="btn btn-add" onclick="addBlock('text')">+ Add Text Paragraph</button>
+                    <button type="button" class="btn btn-add" onclick="addBlock('image')">+ Add Image URL</button>
+                </div>
+
+                <button type="submit" class="btn btn-black">Save Project</button>
+            </form>
+        </div>
+
+        <script>
+            let blockCount = 0;
+            const container = document.getElementById('blocks-container');
+
+            function addBlock(type) {
+                const div = document.createElement('div');
+                div.className = 'section-block';
+                div.innerHTML = \`
+                    <button type="button" class="btn btn-remove" onclick="this.parentElement.remove()">Remove</button>
+                    <input type="hidden" name="blocks[\${blockCount}][type]" value="\${type}">
+                    <label>\${type === 'text' ? '📝 Text Paragraph' : '🖼️ Image URL'}</label>
+                    \${type === 'text' 
+                        ? \`<textarea name="blocks[\${blockCount}][value]" rows="4" required></textarea>\` 
+                        : \`<input name="blocks[\${blockCount}][value]" placeholder="https://imgur.com/..." required>\`
+                    }
+                \`;
+                container.appendChild(div);
+                blockCount++;
+            }
+        </script>
     </body>
     </html>
     `);
 });
 
-// 3. HANDLE ADD FORM SUBMIT
+// 3. HANDLE DYNAMIC POST
 app.post('/admin/add', checkAuth, async (req, res) => {
     try {
-        const gallery = [];
-        if(req.body.gallery1) gallery.push(req.body.gallery1);
-        if(req.body.gallery2) gallery.push(req.body.gallery2);
+        // Express parses "blocks[0][type]" automatically if using 'extended: true'
+        const rawBlocks = req.body.blocks || [];
+        
+        // Convert the object format express might give us back into a clean array
+        // (Express sometimes parses array-like inputs as objects { '0': {...}, '1': {...} })
+        const contentBlocks = Array.isArray(rawBlocks) ? rawBlocks : Object.values(rawBlocks);
 
         const newProject = new Project({
             id: req.body.id,
             title: req.body.title,
             subtitle: req.body.subtitle,
             image: req.body.image,
-            gallery: gallery,
             link: req.body.link,
             tags: req.body.tags ? req.body.tags.split(',').map(t => t.trim()) : [],
-            modalContent: {
-                gist: req.body.gist,
-                goal: req.body.goal,
-                approach: req.body.approach,
-                result: req.body.result
-            }
+            contentBlocks: contentBlocks
         });
+        
         await newProject.save();
         res.redirect('/admin');
     } catch (err) {
+        console.error(err);
         res.send("Error saving: " + err.message);
     }
 });
@@ -543,61 +585,45 @@ function generateProjectModals(projects) {
 
             <div class="modal-content-scrollable">
                 <div class="modal-inner-container">
-                    
-                    <div class="modal-header-simple">
-                        <h1>${p.title}</h1>
-                        <span class="subtitle">${p.subtitle}</span>
-                        
-                    </div>
+    
+    <div class="modal-header-simple">
+        <h1>${p.title}</h1>
+        <span class="subtitle">${p.subtitle}</span>
+        <div class="modal-actions">
+            <a href="${p.link}" target="_blank" class="btn btn-black">
+                Visit Live Website <i data-feather="external-link"></i>
+            </a>
+        </div>
+    </div>
 
-                    <div class="content-block-media">
-                        <img src="${p.image}" alt="${p.title}" class="project-detail-img">
-                    </div>
+    <div class="content-block-media">
+        <img src="${p.image}" alt="${p.title}" class="project-detail-img">
+    </div>
 
-                    <div class="modal-actions">
-                            <a href="${p.link}" target="_blank" class="btn btn-black">
-                                Visit Live Website <i data-feather="external-link"></i>
-                            </a>
-                        </div>
-
-                         <div style="margin-top: 2rem;">
-                            <h3>Tech Stack</h3>
-                            <div class="tags-wrapper">
-                                ${p.tags.map(tag => `<span class="tag">${tag}</span>`).join('')}
-                            </div>
-                        </div>
-
-                    <div class="content-block-text">
-                        <h3>The Story</h3>
-                        <p>${p.modalContent.gist}</p>
-                    </div>
-
-                    ${p.gallery && p.gallery[0] ? `
-                    <div class="content-block-media">
-                        <img src="${p.gallery[0]}" class="project-detail-img">
-                    </div>` : ''}
-
-                    <div class="content-block-text">
-                        <h3>The Goal</h3>
-                        <p>${p.modalContent.goal}</p>
-                    </div>
-
-                    ${p.gallery && p.gallery[1] ? `
-                    <div class="content-block-media">
-                        <img src="${p.gallery[1]}" class="project-detail-img">
-                    </div>` : ''}
-
-                    <div class="content-block-text">
-                        <h3>Technical Approach</h3>
-                        <p>${p.modalContent.approach}</p>
-                        
-                        <h3>The Result</h3>
-                        <p>${p.modalContent.result}</p>
-
-                       
-                    </div>
-
+    ${p.contentBlocks && p.contentBlocks.length > 0 ? p.contentBlocks.map(block => {
+        if (block.type === 'text') {
+            return `
+                <div class="content-block-text">
+                    <p>${block.value.replace(/\n/g, '<br>')}</p>
                 </div>
+            `;
+        } else if (block.type === 'image') {
+            return `
+                <div class="content-block-media">
+                    <img src="${block.value}" class="project-detail-img">
+                </div>
+            `;
+        }
+    }).join('') : '<p>No content details available.</p>'}
+
+    <div class="content-block-text" style="margin-top: 3rem;">
+        <h3>Tech Stack</h3>
+        <div class="tags-wrapper">
+            ${p.tags.map(tag => `<span class="tag">${tag}</span>`).join('')}
+        </div>
+    </div>
+
+</div>
             </div>
         </div>
     `).join('');
