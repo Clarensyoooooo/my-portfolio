@@ -2,22 +2,28 @@ require('dotenv').config();
 const express = require('express');
 const mongoose = require('mongoose');
 const path = require('path');
+
+// --- 1. IMPORT ADMINJS (New Code) ---
+const AdminJS = require('adminjs');
+const AdminJSExpress = require('@adminjs/express');
+const AdminJSMongoose = require('@adminjs/mongoose');
+
 const app = express();
 const port = process.env.PORT || 3000;
 
-// --- 1. CONNECT TO DATABASE ---
+// --- 2. CONNECT TO DATABASE ---
 mongoose.connect(process.env.MONGO_URI)
   .then(() => console.log('✅ Connected to MongoDB Atlas'))
   .catch(err => console.error('❌ DB Connection Error:', err));
 
-// --- 2. DEFINE SCHEMAS ---
+// --- 3. DEFINE SCHEMAS ---
 const ProjectSchema = new mongoose.Schema({
     id: String,
     title: String,
     subtitle: String,
     tags: [String],
-    image: String, // Your main cover image
-    gallery: [String], // <--- ADD THIS: Array of image URLs for the "Notes" flow
+    image: String,
+    gallery: [String], // Ensure you kept this from our previous step!
     link: String,
     description: String,
     modalContent: { gist: String, goal: String, approach: String, result: String }
@@ -41,22 +47,49 @@ const TechStackSchema = new mongoose.Schema({
     items: [String]
 });
 
-// --- 3. CREATE MODELS (The Fix is Here!) ---
+// --- 4. CREATE MODELS ---
 const Project = mongoose.model('Project', ProjectSchema);
-// FIX: We tell Mongoose to look for 'experience' (singular), not 'experiences'
 const Experience = mongoose.model('Experience', ExperienceSchema, 'experience'); 
-const Certification = mongoose.model('Certification', CertificationSchema); // Looks for 'certifications' (plural) - Correct based on your screenshot
+const Certification = mongoose.model('Certification', CertificationSchema); 
 const TechStack = mongoose.model('TechStack', TechStackSchema, 'tech_stack');
 
-// Serve static files
+// --- 5. SETUP ADMINJS (New Code) ---
+// We tell AdminJS how to talk to Mongoose
+AdminJS.registerAdapter(AdminJSMongoose);
+
+// We configure the admin panel
+const adminOptions = {
+  resources: [Project, Experience, Certification, TechStack], // These are the models we created above
+  rootPath: '/admin',
+};
+
+// Build the admin router
+const admin = new AdminJS(adminOptions);
+const adminRouter = AdminJSExpress.buildAuthenticatedRouter(admin, {
+  authenticate: async (email, password) => {
+    // HARDCODED CREDENTIALS (Change these!)
+    if (email === 'admin@example.com' && password === 'password') {
+      return { email: 'admin@example.com', role: 'admin' };
+    }
+    return false;
+  },
+  cookiePassword: 'some-secret-password-used-to-encrypt-cookies',
+  cookieName: 'adminjs',
+});
+
+// Mount the admin router BEFORE your other routes
+app.use(admin.options.rootPath, adminRouter);
+
+
+// --- 6. SERVE STATIC FILES (Existing Code) ---
 app.use(express.static(path.join(__dirname, 'public')));
 
-// --- STUDENT DATA ---
+// --- STUDENT DATA (Existing Code) ---
 const name = "Clarence Neil Meneses";
 const role = "IT Student \\ Full-Stack Developer";
 const location = "Tanauan City, Batangas";
 const email = "clarenceneilpamplona@gmail.com";
-const section = "BA 4102"; 
+const section = "BA 4102";
 
 // --- ROUTES ---
 
