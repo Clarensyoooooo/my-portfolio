@@ -581,65 +581,63 @@ function generateProjectCards(projects) {
 }
 
 function generateProjectModals(projects) {
-    if(!projects) return '';
+    if (!projects) return '';
     return projects.map(p => `
         <div id="modal-${p.id}" class="modal-overlay">
-            
+
             <button class="close-btn-fixed" onclick="closeModal(null, '${p.id}')">
                 <i data-feather="x"></i> Close
             </button>
 
             <div class="modal-content-scrollable">
                 <div class="modal-inner-container">
-    
-                 <div class="content-block-media">
-        <img src="${p.image}" alt="${p.title}" class="project-detail-img">
-    </div>
-    <div class="modal-header-simple">
-   
-        <h1>${p.title}</h1>
-        <span class="subtitle">${p.subtitle}</span>
-        
-    </div>
 
-        <div class="content-block-text" style="margin-top: 3rem;">
-            <h3>Tech Stack</h3>
-            <div class="tags-wrapper">
-                ${p.tags.map(tag => `<span class="tag">${tag}</span>`).join('')}
-            </div>
-        <div class="modal-actions">
-            <a href="${p.link}" target="_blank" class="btn btn-black">
-                Visit Live Website <i data-feather="external-link"></i>
-            </a>
-        </div>
-    </div>
+                    <div class="content-block-media">
+                        <img src="${p.image}" alt="${p.title}" class="project-detail-img">
+                    </div>
 
+                    <div class="modal-header-simple">
+                        <h1>${p.title}</h1>
+                        <span class="subtitle">${p.subtitle}</span>
+                    </div>
 
-    
+                    <div class="content-block-text" style="margin-top: 3rem;">
+                        <h3>Tech Stack</h3>
+                        <div class="tags-wrapper">
+                            ${p.tags.map(tag => `<span class="tag">${tag}</span>`).join('')}
+                        </div>
+                        <div class="modal-actions">
+                            <a href="${p.link}" target="_blank" class="btn btn-black">
+                                Visit Live Website <i data-feather="external-link"></i>
+                            </a>
+                        </div>
+                    </div>  <!-- FIXED: missing closing tag -->
 
-    ${p.contentBlocks && p.contentBlocks.length > 0 ? p.contentBlocks.map(block => {
-        if (block.type === 'text') {
-            return `
-                <div class="content-block-text">
-                    <p>${block.value.replace(/\n/g, '<br>')}</p>
+                    ${p.contentBlocks && p.contentBlocks.length > 0 ?
+                        p.contentBlocks.map(block => {
+                            if (block.type === 'text') {
+                                return `
+                                    <div class="content-block-text">
+                                        <p>${block.value.replace(/\n/g, '<br>')}</p>
+                                    </div>
+                                `;
+                            } else if (block.type === 'image') {
+                                return `
+                                    <div class="content-block-media">
+                                        <img src="${block.value}" class="project-detail-img">
+                                    </div>
+                                `;
+                            }
+                        }).join('')
+                        : '<p>No content details available.</p>'
+                    }
+
                 </div>
-            `;
-        } else if (block.type === 'image') {
-            return `
-                <div class="content-block-media">
-                    <img src="${block.value}" class="project-detail-img">
-                </div>
-            `;
-        }
-    }).join('') : '<p>No content details available.</p>'}
-
-   
-
-</div>
             </div>
         </div>
     `).join('');
 }
+
 
 function renderInnerPage(title, content) {
     return `
