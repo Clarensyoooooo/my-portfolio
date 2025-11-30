@@ -3,9 +3,7 @@ const path = require('path');
 const app = express();
 const port = process.env.PORT || 3000;
 
-// --- PROJECT DATA ---
-const projectsData = [
-    {
+
      // --- PROJECT DATA ---
 const projectsData = [
     {
