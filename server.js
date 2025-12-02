@@ -253,23 +253,21 @@ app.get('/admin/add', checkAuth, (req, res) => {
 // 3. HANDLE DYNAMIC POST
 app.post('/admin/add', checkAuth, async (req, res) => {
     try {
-        // Express parses "blocks[0][type]" automatically if using 'extended: true'
+        // CHANGED: blocks -> contentBlocks
         const rawBlocks = req.body.contentBlocks || [];
         
-        // Convert the object format express might give us back into a clean array
-        // (Express sometimes parses array-like inputs as objects { '0': {...}, '1': {...} })
         const contentBlocks = Array.isArray(rawBlocks) ? rawBlocks : Object.values(rawBlocks);
 
         const newProject = new Project({
-    id: req.body.id,
-    title: req.body.title,
-    subtitle: req.body.subtitle,
-    image: req.body.image,
-    link: req.body.link,
-    description: req.body.description, // <--- ADD THIS LINE
-    tags: req.body.tags ? req.body.tags.split(',').map(t => t.trim()) : [],
-    contentBlocks: contentBlocks
-});
+            id: req.body.id,
+            title: req.body.title,
+            subtitle: req.body.subtitle,
+            image: req.body.image,
+            link: req.body.link,
+            description: req.body.description, 
+            tags: req.body.tags ? req.body.tags.split(',').map(t => t.trim()) : [],
+            contentBlocks: contentBlocks
+        });
         
         await newProject.save();
         res.redirect('/admin');
@@ -566,30 +564,71 @@ function renderCertificationsPage(certifications) {
     return renderInnerPage("Certifications", content);
 }
 
-function renderProjectsPage(projects) {
-    return renderInnerPage("Recent Projects", `
-        <p style="margin-bottom: 2rem; color: var(--text-muted);">
-            A selection of projects I've built, from web applications to side projects that solve real problems.
-        </p>
-        <div class="project-grid-visual">
-            ${generateProjectCards(projects)}
+function generateProjectModals(projects) {
+    if (!projects) return '';
+    return projects.map(p => `
+        <div id="modal-${p.id}" class="modal-overlay">
+            <button class="close-btn-fixed" onclick="closeModal(null, '${p.id}')">
+                <i data-feather="x"></i> Close
+            </button>
+
+            <div class="modal-content-scrollable">
+                <div class="modal-inner-container">
+                    
+                    <div class="content-block-media">
+                        <img src="${p.image}" alt="${p.title}" class="project-detail-img">
+                    </div>
+
+                    <div class="modal-header-simple">
+                        <h1>${p.title}</h1>
+                        <span class="subtitle">${p.subtitle}</span>
+                    </div>
+
+                    <div class="content-block-text" style="margin-top: 3rem;">
+                        <h3>Tech Stack</h3>
+                        <div class="tags-wrapper">
+                            ${p.tags.map(tag => `<span class="tag">${tag}</span>`).join('')}
+                        </div>
+                        <div class="modal-actions">
+                            <a href="${p.link}" target="_blank" class="btn btn-black">
+                                Visit Live Website <i data-feather="external-link"></i>
+                            </a>
+                        </div>
+                    </div>
+
+                    ${p.contentBlocks && p.contentBlocks.length > 0 ?
+                        p.contentBlocks.map(block => {
+                            // Safely handle content, falling back to empty string if undefined
+                            const content = block.content || block.value || ''; 
+                            
+                            if (block.type === 'text') {
+                                return `
+                                    <div class="content-block-text">
+                                        <p>${content.replace(/\n/g, '<br>')}</p>
+                                    </div>
+                                `;
+                            } else if (block.type === 'image') {
+                                const captionHtml = block.caption 
+                                    ? `<figcaption style="text-align:center; color:#666; font-size:0.9rem; margin-top:10px;">${block.caption}</figcaption>` 
+                                    : '';
+                                    
+                                return `
+                                    <div class="content-block-media" style="background:transparent; box-shadow:none;">
+                                        <figure style="margin:0;">
+                                            <img src="${content}" class="project-detail-img" style="border-radius:12px;">
+                                            ${captionHtml}
+                                        </figure>
+                                    </div>
+                                `;
+                            }
+                        }).join('')
+                        : '<p style="color:#666;">No additional details available.</p>'
+                    }
+
+                </div>
+            </div>
         </div>
-        ${generateProjectModals(projects)}
-        <script>
-            function openModal(id) {
-                document.getElementById('modal-' + id).classList.add('active');
-                document.body.style.overflow = 'hidden'; 
-                feather.replace();
-            }
-            function closeModal(event, id) {
-                const modal = document.getElementById('modal-' + id);
-                if (modal) {
-                     modal.classList.remove('active');
-                     document.body.style.overflow = 'auto'; 
-                }
-            }
-        </script>
-    `);
+    `).join('');
 }
 
 // --- SHARED HELPERS ---
