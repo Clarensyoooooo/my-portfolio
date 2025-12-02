@@ -133,17 +133,18 @@ app.get('/admin', checkAuth, async (req, res) => {
         </div>
         
         ${projects.map(p => `
-            <div class="card">
-                <div>
-                    <strong>${p.title}</strong><br>
-                    <span style="color:#666; font-size:0.8rem">${p.subtitle}</span>
-                </div>
-                <div>
-                     <a href="${p.link}" target="_blank" style="margin-right:10px; color:#2563EB">View</a>
-                     <a href="/admin/delete/${p.id}" class="btn btn-red" onclick="return confirm('Are you sure?')">Delete</a>
-                </div>
-            </div>
-        `).join('')}
+    <div class="card">
+        <div>
+            <strong>${p.title}</strong><br>
+            <span style="color:#666; font-size:0.8rem">${p.subtitle}</span>
+        </div>
+        <div style="display:flex; gap:10px; align-items:center;">
+                <a href="${p.link}" target="_blank" style="color:#2563EB; text-decoration:none;">View Live</a>
+                <a href="/admin/edit/${p.id}" class="btn" style="background:#3B82F6; color:white;">Edit</a>
+                <a href="/admin/delete/${p.id}" class="btn btn-red" onclick="return confirm('Are you sure you want to delete this?')">Delete</a>
+        </div>
+    </div>
+`).join('')}
     </body>
     </html>
     `;
@@ -248,6 +249,159 @@ app.get('/admin/add', checkAuth, (req, res) => {
     </body>
     </html>
     `);
+});
+
+// 3. SHOW EDIT FORM
+app.get('/admin/edit/:id', checkAuth, async (req, res) => {
+    try {
+        const project = await Project.findOne({ id: req.params.id });
+        if (!project) return res.status(404).send('Project not found');
+
+        // We convert the blocks to a JSON string so we can inject it into the frontend script
+        const blocksJson = JSON.stringify(project.contentBlocks || []);
+
+        res.send(`
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <title>Edit Project</title>
+            <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+            <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet"> 
+            <style>
+                body { font-family: 'Inter', sans-serif; padding: 2rem; max-width: 800px; margin: 0 auto; background: #f9fafb; }
+                .container { background: white; padding: 2rem; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
+                .content-block { background: #f8f9fa; border: 1px solid #dee2e6; padding: 1.5rem; margin-bottom: 1rem; border-radius: 0.5rem; position: relative; }
+            </style>
+        </head>
+        <body>
+            <div class="container mt-4">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h1>Edit Project</h1>
+                    <a href="/admin" class="btn btn-outline-secondary">Cancel</a>
+                </div>
+
+                <form action="/admin/edit/${project.id}" method="POST">
+                    <div class="mb-3"><label class="form-label">ID (Cannot change)</label><input class="form-control" value="${project.id}" disabled></div>
+                    <div class="mb-3"><label class="form-label">Title</label><input name="title" class="form-control" value="${project.title}" required></div>
+                    <div class="mb-3"><label class="form-label">Subtitle</label><input name="subtitle" class="form-control" value="${project.subtitle}"></div>
+                    <div class="mb-3">
+                        <label class="form-label">Short Description</label>
+                        <textarea name="description" class="form-control" rows="3" required>${project.description}</textarea>
+                    </div>
+                    <div class="mb-3"><label class="form-label">Cover Image URL</label><input name="image" class="form-control" value="${project.image}" required></div>
+                    <div class="mb-3"><label class="form-label">Live Link</label><input name="link" class="form-control" value="${project.link}"></div>
+                    <div class="mb-3"><label class="form-label">Tags</label><input name="tags" class="form-control" value="${project.tags.join(', ')}"></div>
+
+                    <hr class="my-4">
+                    
+                    <h3>Project Content</h3>
+                    <div id="contentBlocksContainer"></div>
+
+                    <div class="my-3 text-center border p-3 rounded border-dashed">
+                        <button type="button" id="addContentBlockBtn" class="btn btn-outline-primary">+ Add New Block</button>
+                    </div>
+
+                    <button type="submit" class="btn btn-dark w-100 py-2">Update Project</button>
+                </form>
+            </div>
+
+            <script>
+                // 1. INJECT EXISTING DATA FROM SERVER
+                const existingBlocks = ${blocksJson};
+                const container = document.getElementById('contentBlocksContainer');
+
+                // 2. FUNCTION TO CREATE A BLOCK (Used by both "Load" and "Add New")
+                function createBlockElement(index, data = null) {
+                    const blockDiv = document.createElement('div');
+                    blockDiv.className = 'content-block';
+                    
+                    // Determine initial values
+                    const isText = data ? data.type === 'text' : true;
+                    const contentVal = data ? data.content : '';
+                    const captionVal = data ? data.caption : '';
+
+                    blockDiv.innerHTML = \`
+                        <div class="d-flex justify-content-between mb-2">
+                            <strong>Block \${index + 1}</strong>
+                            <button type="button" class="btn btn-sm btn-outline-danger" onclick="this.parentElement.parentElement.remove()">Remove</button>
+                        </div>
+                        <div class="mb-2">
+                            <select class="form-select" name="contentBlocks[\${index}][type]" onchange="toggleBlockInput(this)">
+                                <option value="text" \${isText ? 'selected' : ''}>Text Paragraph</option>
+                                <option value="image" \${!isText ? 'selected' : ''}>Image URL</option>
+                            </select>
+                        </div>
+
+                        <div class="block-input-container text-input mb-2" style="display: \${isText ? 'block' : 'none'}">
+                            <p class="text-muted small mb-1">Tip: Use &lt;b&gt;bold&lt;/b&gt; tags</p>
+                            <textarea class="form-control" name="contentBlocks[\${index}][content]" rows="4" \${!isText ? 'disabled' : ''}>\${isText ? contentVal : ''}</textarea>
+                        </div>
+
+                        <div class="block-input-container image-input mb-2" style="display: \${!isText ? 'block' : 'none'}">
+                            <input type="text" class="form-control mb-2" name="contentBlocks[\${index}][content]" placeholder="Image URL" value="\${!isText ? contentVal : ''}" \${isText ? 'disabled' : ''}>
+                            <input type="text" class="form-control" name="contentBlocks[\${index}][caption]" placeholder="Caption" value="\${captionVal || ''}" \${isText ? 'disabled' : ''}>
+                        </div>
+                    \`;
+                    return blockDiv;
+                }
+
+                // 3. LOAD EXISTING BLOCKS ON PAGE LOAD
+                existingBlocks.forEach((block, index) => {
+                    container.appendChild(createBlockElement(index, block));
+                });
+
+                // 4. ADD NEW BLOCK BUTTON LISTENER
+                document.getElementById('addContentBlockBtn').addEventListener('click', function() {
+                    const index = container.children.length;
+                    container.appendChild(createBlockElement(index));
+                });
+
+                // 5. TOGGLE VISIBILITY FUNCTION
+                function toggleBlockInput(selectElement) {
+                    const blockDiv = selectElement.closest('.content-block');
+                    const textContainer = blockDiv.querySelector('.text-input');
+                    const imageContainer = blockDiv.querySelector('.image-input');
+                    const isText = selectElement.value === 'text';
+
+                    textContainer.style.display = isText ? 'block' : 'none';
+                    textContainer.querySelector('textarea').disabled = !isText;
+
+                    imageContainer.style.display = isText ? 'none' : 'block';
+                    imageContainer.querySelectorAll('input').forEach(i => i.disabled = isText);
+                }
+            </script>
+        </body>
+        </html>
+        `);
+    } catch (err) {
+        res.send("Error loading project: " + err.message);
+    }
+});
+
+// 4. HANDLE EDIT POST (UPDATE)
+app.post('/admin/edit/:id', checkAuth, async (req, res) => {
+    try {
+        const rawBlocks = req.body.contentBlocks || [];
+        const contentBlocks = Array.isArray(rawBlocks) ? rawBlocks : Object.values(rawBlocks);
+
+        const updateData = {
+            title: req.body.title,
+            subtitle: req.body.subtitle,
+            description: req.body.description,
+            image: req.body.image,
+            link: req.body.link,
+            tags: req.body.tags ? req.body.tags.split(',').map(t => t.trim()) : [],
+            contentBlocks: contentBlocks
+        };
+
+        // We use findOneAndUpdate to update the specific document
+        await Project.findOneAndUpdate({ id: req.params.id }, updateData);
+        
+        res.redirect('/admin');
+    } catch (err) {
+        console.error(err);
+        res.send("Error updating: " + err.message);
+    }
 });
 
 // 3. HANDLE DYNAMIC POST
