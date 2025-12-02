@@ -317,7 +317,10 @@ app.get('/projects', async (req, res) => {
     try {
         const projects = await Project.find({});
         res.send(renderProjectsPage(projects));
-    } catch (err) { res.status(500).send("Error"); }
+    } catch (err) { 
+        console.error(err); // Prints to your server console
+        res.status(500).send("Error Details: " + err.message); // Shows you the error on screen
+    }
 });
 
 // 4. CERTIFICATIONS PAGE
