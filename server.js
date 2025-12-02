@@ -551,6 +551,32 @@ function renderTechStackPage(techStack) {
     return renderInnerPage("Tech Stack", content);
 }
 
+function renderProjectsPage(projects) {
+    return renderInnerPage("Recent Projects", `
+        <p style="margin-bottom: 2rem; color: var(--text-muted);">
+            A selection of projects I've built, from web applications to side projects that solve real problems.
+        </p>
+        <div class="project-grid-visual">
+            ${generateProjectCards(projects)}
+        </div>
+        ${generateProjectModals(projects)}
+        <script>
+            function openModal(id) {
+                document.getElementById('modal-' + id).classList.add('active');
+                document.body.style.overflow = 'hidden'; 
+                feather.replace();
+            }
+            function closeModal(event, id) {
+                const modal = document.getElementById('modal-' + id);
+                if (modal) {
+                     modal.classList.remove('active');
+                     document.body.style.overflow = 'auto'; 
+                }
+            }
+        </script>
+    `);
+}
+
 function renderCertificationsPage(certifications) {
     const content = `
         <div class="card">
