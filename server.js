@@ -24,12 +24,22 @@ const ProjectSchema = new mongoose.Schema({
     description: String, // <--- ADD THIS LINE BACK
     
     // Your dynamic blocks
-    contentBlocks: [
-        {
-            type: { type: String, enum: ['text', 'image'] }, 
-            value: String 
+    contentBlocks: [{
+        _id: false, // Optional: stops Mongoose from creating an _id for every single block sub-document
+        type: {
+            type: String,
+            enum: ['text', 'image'],
+            required: true
+        },
+        content: {
+            type: String,
+            required: true // The main Text or Image URL
+        },
+        caption: {
+            type: String,
+            required: false // NEW Field: Only needed for images
         }
-    ]
+    }]
 });
 
 const ExperienceSchema = new mongoose.Schema({
@@ -58,8 +68,8 @@ const TechStack = mongoose.model('TechStack', TechStackSchema, 'tech_stack');
 
 // --- AUTHENTICATION MIDDLEWARE ---
 const adminUser = {
-    username: "admin",
-    password: "Jediletwotwo22" // Your password
+    username: process.env.ADMIN_USER,
+    password: process.env.ADMIN_PASS
 };
 
 function checkAuth(req, res, next) {
@@ -148,68 +158,91 @@ app.get('/admin/add', checkAuth, (req, res) => {
     <head>
         <title>Add Project</title>
         <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet"> 
         <style>
-            body { font-family: 'Inter', sans-serif; padding: 2rem; max-width: 700px; margin: 0 auto; background: #f9fafb; }
+            body { font-family: 'Inter', sans-serif; padding: 2rem; max-width: 800px; margin: 0 auto; background: #f9fafb; }
             .container { background: white; padding: 2rem; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
-            h1 { margin-top: 0; }
-            label { display: block; margin-bottom: 0.5rem; font-weight: 600; font-size: 0.9rem; }
-            input, textarea { width: 100%; padding: 0.8rem; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box; font-family: inherit; }
-            .section-block { background: #f3f4f6; padding: 1rem; border-radius: 8px; margin-bottom: 1rem; position: relative; border: 1px solid #e5e7eb; }
-            .btn { cursor: pointer; padding: 10px 15px; border-radius: 6px; border: none; font-weight: 600; font-size: 0.9rem; }
-            .btn-black { background: #111; color: white; width: 100%; padding: 12px; margin-top: 1rem; }
-            .btn-add { background: #fff; border: 1px solid #ccc; margin-right: 5px; }
-            .btn-remove { position: absolute; top: 10px; right: 10px; background: #ef4444; color: white; padding: 4px 8px; font-size: 0.8rem; }
-            .controls { margin: 1.5rem 0; padding: 1rem; border: 2px dashed #ccc; text-align: center; border-radius: 8px; }
+            .content-block { background: #f8f9fa; border: 1px solid #dee2e6; padding: 1.5rem; margin-bottom: 1rem; border-radius: 0.5rem; position: relative; }
         </style>
     </head>
     <body>
-        <div class="container">
-            <h1>Add Project (Dynamic)</h1>
+        <div class="container mt-4">
+            <h1 class="mb-4">Add Project (Dynamic)</h1>
             <form action="/admin/add" method="POST">
-                <div style="margin-bottom:1rem"><label>ID (Unique)</label><input name="id" required placeholder="e.g. holiday-hunter"></div>
-                <div style="margin-bottom:1rem"><label>Title</label><input name="title" required></div>
-                <div style="margin-bottom:1rem"><label>Subtitle</label><input name="subtitle"></div>
-                <div style="margin-bottom:1rem">
-    <label>Short Description (For Home Page Card)</label>
-    <textarea name="description" rows="3" required placeholder="A short summary that appears on the home page card..."></textarea>
-</div>
-                <div style="margin-bottom:1rem"><label>Cover Image URL</label><input name="image" required></div>
-                <div style="margin-bottom:1rem"><label>Live Link</label><input name="link"></div>
-                <div style="margin-bottom:1rem"><label>Tags (comma separated)</label><input name="tags"></div>
+                <div class="mb-3"><label class="form-label">ID (Unique)</label><input name="id" class="form-control" required placeholder="e.g. holiday-hunter"></div>
+                <div class="mb-3"><label class="form-label">Title</label><input name="title" class="form-control" required></div>
+                <div class="mb-3"><label class="form-label">Subtitle</label><input name="subtitle" class="form-control"></div>
+                <div class="mb-3">
+                    <label class="form-label">Short Description</label>
+                    <textarea name="description" class="form-control" rows="3" required placeholder="Summary for home card..."></textarea>
+                </div>
+                <div class="mb-3"><label class="form-label">Cover Image URL</label><input name="image" class="form-control" required></div>
+                <div class="mb-3"><label class="form-label">Live Link</label><input name="link" class="form-control"></div>
+                <div class="mb-3"><label class="form-label">Tags (comma separated)</label><input name="tags" class="form-control"></div>
 
-                <hr style="margin: 2rem 0; border: 0; border-top: 1px solid #eee;">
+                <hr class="my-4">
                 
                 <h3>Project Content</h3>
-                <div id="blocks-container">
+                <div id="contentBlocksContainer">
                     </div>
 
-                <div class="controls">
-                    <button type="button" class="btn btn-add" onclick="addBlock('text')">+ Add Text Paragraph</button>
-                    <button type="button" class="btn btn-add" onclick="addBlock('image')">+ Add Image URL</button>
+                <div class="my-3 text-center border p-3 rounded border-dashed">
+                    <button type="button" id="addContentBlockBtn" class="btn btn-outline-primary">+ Add New Block</button>
                 </div>
 
-                <button type="submit" class="btn btn-black">Save Project</button>
+                <button type="submit" class="btn btn-dark w-100 py-2">Save Project</button>
             </form>
         </div>
 
         <script>
-            let blockCount = 0;
-            const container = document.getElementById('blocks-container');
+            document.getElementById('addContentBlockBtn').addEventListener('click', function() {
+                const container = document.getElementById('contentBlocksContainer');
+                const blockIndex = container.children.length; 
 
-            function addBlock(type) {
-                const div = document.createElement('div');
-                div.className = 'section-block';
-                div.innerHTML = \`
-                    <button type="button" class="btn btn-remove" onclick="this.parentElement.remove()">Remove</button>
-                    <input type="hidden" name="blocks[\${blockCount}][type]" value="\${type}">
-                    <label>\${type === 'text' ? '📝 Text Paragraph' : '🖼️ Image URL'}</label>
-                    \${type === 'text' 
-                        ? \`<textarea name="blocks[\${blockCount}][value]" rows="4" required></textarea>\` 
-                        : \`<input name="blocks[\${blockCount}][value]" placeholder="https://imgur.com/..." required>\`
-                    }
+                const blockDiv = document.createElement('div');
+                blockDiv.className = 'content-block';
+                blockDiv.innerHTML = \`
+                    <div class="d-flex justify-content-between mb-2">
+                        <strong>Block \${blockIndex + 1}</strong>
+                        <button type="button" class="btn btn-sm btn-outline-danger" onclick="this.parentElement.parentElement.remove()">Remove</button>
+                    </div>
+                    <div class="mb-2">
+                        <select class="form-select" name="contentBlocks[\${blockIndex}][type]" onchange="toggleBlockInput(this)">
+                            <option value="text">Text Paragraph</option>
+                            <option value="image">Image URL</option>
+                        </select>
+                    </div>
+
+                    <div class="block-input-container text-input mb-2">
+                        <p class="text-muted small mb-1">Tip: Use &lt;b&gt;bold&lt;/b&gt; or &lt;i&gt;italics&lt;/i&gt;</p>
+                        <textarea class="form-control" name="contentBlocks[\${blockIndex}][content]" rows="4" placeholder="Enter text content..."></textarea>
+                    </div>
+
+                    <div class="block-input-container image-input mb-2" style="display:none;">
+                        <input type="text" class="form-control mb-2" name="contentBlocks[\${blockIndex}][content]" placeholder="Image URL" disabled>
+                        <input type="text" class="form-control" name="contentBlocks[\${blockIndex}][caption]" placeholder="Caption (Optional)" disabled>
+                    </div>
                 \`;
-                container.appendChild(div);
-                blockCount++;
+                container.appendChild(blockDiv);
+            });
+
+            function toggleBlockInput(selectElement) {
+                const blockDiv = selectElement.closest('.content-block');
+                const textContainer = blockDiv.querySelector('.text-input');
+                const imageContainer = blockDiv.querySelector('.image-input');
+                const selectedType = selectElement.value;
+
+                if (selectedType === 'text') {
+                    textContainer.style.display = 'block';
+                    textContainer.querySelector('textarea').disabled = false;
+                    imageContainer.style.display = 'none';
+                    imageContainer.querySelectorAll('input').forEach(i => i.disabled = true);
+                } else {
+                    textContainer.style.display = 'none';
+                    textContainer.querySelector('textarea').disabled = true;
+                    imageContainer.style.display = 'block';
+                    imageContainer.querySelectorAll('input').forEach(i => i.disabled = false);
+                }
             }
         </script>
     </body>
@@ -221,7 +254,7 @@ app.get('/admin/add', checkAuth, (req, res) => {
 app.post('/admin/add', checkAuth, async (req, res) => {
     try {
         // Express parses "blocks[0][type]" automatically if using 'extended: true'
-        const rawBlocks = req.body.blocks || [];
+        const rawBlocks = req.body.contentBlocks || [];
         
         // Convert the object format express might give us back into a clean array
         // (Express sometimes parses array-like inputs as objects { '0': {...}, '1': {...} })
@@ -584,14 +617,13 @@ function generateProjectModals(projects) {
     if (!projects) return '';
     return projects.map(p => `
         <div id="modal-${p.id}" class="modal-overlay">
-
             <button class="close-btn-fixed" onclick="closeModal(null, '${p.id}')">
                 <i data-feather="x"></i> Close
             </button>
 
             <div class="modal-content-scrollable">
                 <div class="modal-inner-container">
-
+                    
                     <div class="content-block-media">
                         <img src="${p.image}" alt="${p.title}" class="project-detail-img">
                     </div>
@@ -611,25 +643,32 @@ function generateProjectModals(projects) {
                                 Visit Live Website <i data-feather="external-link"></i>
                             </a>
                         </div>
-                    </div>  <!-- FIXED: missing closing tag -->
+                    </div>
 
                     ${p.contentBlocks && p.contentBlocks.length > 0 ?
                         p.contentBlocks.map(block => {
                             if (block.type === 'text') {
                                 return `
                                     <div class="content-block-text">
-                                        <p>${block.value.replace(/\n/g, '<br>')}</p>
+                                        <p>${block.content.replace(/\n/g, '<br>')}</p>
                                     </div>
                                 `;
                             } else if (block.type === 'image') {
+                                const captionHtml = block.caption 
+                                    ? `<figcaption style="text-align:center; color:#666; font-size:0.9rem; margin-top:10px;">${block.caption}</figcaption>` 
+                                    : '';
+                                    
                                 return `
-                                    <div class="content-block-media">
-                                        <img src="${block.value}" class="project-detail-img">
+                                    <div class="content-block-media" style="background:transparent; box-shadow:none;">
+                                        <figure style="margin:0;">
+                                            <img src="${block.content}" class="project-detail-img" style="border-radius:12px;">
+                                            ${captionHtml}
+                                        </figure>
                                     </div>
                                 `;
                             }
                         }).join('')
-                        : '<p>No content details available.</p>'
+                        : '<p style="color:#666;">No additional details available.</p>'
                     }
 
                 </div>
