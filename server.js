@@ -528,7 +528,7 @@ function renderHome(projects, experience, certifications, techStack) {
                 </div>
 
                 <div class="header-bottom">
-                    <a href="https://calendly.com/your-username" target="_blank" class="btn btn-black">
+                    <a href="https://calendly.com/clarenceneilpamplona/30min" target="_blank" class="btn btn-black">
     <i data-feather="calendar"></i> Schedule a Call
 </a>
                     <a href="mailto:${email}" class="btn btn-white"><i data-feather="mail"></i> Send Email</a>
