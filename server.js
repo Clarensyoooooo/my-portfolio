@@ -597,16 +597,19 @@ function renderHome(projects, experience, certifications, techStack) {
                     ${generateCertificationsHome(certifications)}
                 </div>
                 
-                <div class="card">
-                     <div class="card-title"><i data-feather="message-square"></i> Recommendations</div>
-                     <div style="height: 120px; display:flex; align-items:center; justify-content:center; color:var(--text-muted); gap:5px;">
-                        <span style="width:6px; height:6px; background:#ccc; border-radius:50%"></span>
-                        <span style="width:6px; height:6px; background:#ccc; border-radius:50%"></span>
-                        <span style="width:6px; height:6px; background:#ccc; border-radius:50%"></span>
-                        <span style="width:6px; height:6px; background:#ccc; border-radius:50%"></span>
-                        <span style="width:6px; height:6px; background:#ccc; border-radius:50%"></span>
-                     </div>
-                </div>
+               <div class="card">
+    <div class="card-header">
+        <div class="card-title"><i data-feather="activity"></i> Coding Activity</div>
+        <a href="https://github.com/Clarensyoooooo" target="_blank" class="view-all">@Clarensyoooooo</a>
+    </div>
+    
+    <div style="background: var(--bg-page); border: 1px solid var(--border); border-radius: 8px; padding: 10px; overflow: hidden;">
+        <img src="https://ghchart.rshah.org/10B981/Clarensyoooooo" alt="Clarence's Github Chart" style="width: 100%; height: auto; opacity: 0.8;">
+    </div>
+    <p style="font-size: 0.8rem; margin-top: 10px; color: var(--text-muted);">
+        A snapshot of my contributions over the last year.
+    </p>
+</div>
             </div>
 
             <div class="footer-links-grid">
