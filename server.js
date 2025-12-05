@@ -521,14 +521,16 @@ function renderHome(projects, experience, certifications, techStack) {
                         <div class="toggle-wrapper">
                             <button id="darkModeToggle" class="icon-btn"><i data-feather="moon"></i></button>
                         </div>
-                        <div class="hackathon-badge">
-                             <i data-feather="award"></i> Class of 2026
-                        </div>
+                        <a href="/resume.pdf" download class="hackathon-badge" style="text-decoration:none;">
+     <i data-feather="file-text"></i> Download Resume
+</a>
                     </div>
                 </div>
 
                 <div class="header-bottom">
-                    <a href="#" class="btn btn-black"><i data-feather="calendar"></i> Schedule a Call</a>
+                    <a href="https://calendly.com/your-username" target="_blank" class="btn btn-black">
+    <i data-feather="calendar"></i> Schedule a Call
+</a>
                     <a href="mailto:${email}" class="btn btn-white"><i data-feather="mail"></i> Send Email</a>
                     <a href="https://github.com/Clarensyoooooo" target="_blank" class="btn btn-white-wide">
                         <i data-feather="users"></i> Visit my community <i data-feather="chevron-right" style="margin-left:auto"></i>
