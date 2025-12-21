@@ -52,7 +52,10 @@ const CertificationSchema = new mongoose.Schema({
     title: String,
     issuer: String,
     year: String,
-    description: String
+    description: String,
+    // NEW FIELDS
+    priority: { type: Number, default: 99 }, // Default to 99 so new unranked stuff goes to bottom
+    credentialUrl: String
 });
 
 const TechStackSchema = new mongoose.Schema({
@@ -447,7 +450,7 @@ app.get('/', async (req, res) => {
         const [projects, experience, certifications, techStack] = await Promise.all([
             Project.find({}),
             Experience.find({}), 
-            Certification.find({}),
+            Certification.find({}).sort({ priority: 1, year: -1 }),
             TechStack.find({})
         ]);
         
@@ -480,7 +483,7 @@ app.get('/projects', async (req, res) => {
 // 4. CERTIFICATIONS PAGE
 app.get('/certifications', async (req, res) => { 
     try {
-        const certifications = await Certification.find({});
+        const certifications = await Certification.find({}).sort({ priority: 1, year: -1 });
         res.send(renderCertificationsPage(certifications));
     } catch (err) { res.status(500).send("Error"); }
 });
@@ -739,15 +742,51 @@ function renderProjectsPage(projects) {
 function renderCertificationsPage(certifications) {
     const content = `
         <div class="card">
-            ${certifications.map((cert, index) => `
+            ${certifications.map((cert, index) => {
+                // LOGIC: Only show button if URL exists
+                const verifyButton = cert.credentialUrl 
+                    ? `<a href="${cert.credentialUrl}" target="_blank" class="btn-verify">
+                         <i data-feather="external-link" size="14"></i> Verify Credential
+                       </a>`
+                    : '';
+
+                return `
                 <div class="cert-item">
-                    <div style="font-weight:700; font-size:1.1rem">${cert.title}</div>
-                    <div style="color:var(--text-muted)">${cert.issuer} • ${cert.year}</div>
-                    <p>${cert.description}</p>
+                    <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+                        <div>
+                            <div style="font-weight:700; font-size:1.1rem">${cert.title}</div>
+                            <div style="color:var(--text-muted); font-size:0.9rem; margin-top:2px;">
+                                ${cert.issuer} • ${cert.year}
+                            </div>
+                        </div>
+                        ${verifyButton}
+                    </div>
+                    <p style="margin-top:0.8rem;">${cert.description}</p>
                 </div>
                 ${index < certifications.length - 1 ? '<hr style="border:0; border-top:1px solid var(--border); margin:1rem 0;">' : ''}
-            `).join('')}
+            `}).join('')}
         </div>
+        
+        <style>
+            .btn-verify {
+                font-size: 0.75rem;
+                font-weight: 600;
+                color: var(--badge-blue);
+                background: rgba(37, 99, 235, 0.1); /* Subtle blue tint */
+                padding: 4px 10px;
+                border-radius: 20px;
+                text-decoration: none;
+                display: inline-flex;
+                align-items: center;
+                gap: 4px;
+                white-space: nowrap;
+                transition: 0.2s;
+            }
+            .btn-verify:hover {
+                background: var(--badge-blue);
+                color: white;
+            }
+        </style>
     `;
     return renderInnerPage("Certifications", content);
 }
