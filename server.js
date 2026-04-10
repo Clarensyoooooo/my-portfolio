@@ -960,7 +960,6 @@ function getCSS() {
         
         /* MAIN GRID */
         .main-grid { display: grid; grid-template-columns: 1.6fr 1fr; gap: 2rem; margin-bottom: 2rem; }
-        @media (max-width: 768px) { .main-grid { grid-template-columns: 1fr; } }
         
         /* CARDS */
         .card { margin-bottom: 2rem; border: 1px solid var(--border); border-radius: 16px; padding: 1.5rem; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
@@ -1002,10 +1001,8 @@ function getCSS() {
 
         /* FOOTER */
         .bottom-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin-bottom: 2rem; }
-        @media (max-width: 768px) { .bottom-grid { grid-template-columns: 1fr; } }
         .cert-item { margin-bottom: 1rem; }
         .footer-links-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 2rem; border-top: 1px solid var(--border); padding-top: 2rem; margin-bottom: 2rem; }
-        @media (max-width: 768px) { .footer-links-grid { grid-template-columns: 1fr 1fr; } }
         .footer-col small { display: flex; align-items: center; gap: 5px; font-weight: 600; margin-bottom: 1rem; }
         .footer-link-item { font-size: 0.9rem; color: var(--text-muted); margin-bottom: 0.5rem; display: flex; align-items: center; gap: 8px; }
         .footer-clickable:hover { color: var(--text-main); text-decoration:underline; }
@@ -1036,8 +1033,43 @@ function getCSS() {
         .content-block-text h3 { font-size: 1.25rem; font-weight: 700; margin-bottom: 1rem; color: var(--text-main); }
         .content-block-text p { font-size: 1.05rem; line-height: 1.7; color: var(--text-muted); margin-bottom: 1.5rem; }
 
+        /* =========================================
+           📱 MOBILE RESPONSIVE FIXES 
+           ========================================= */
         @media (max-width: 768px) {
-            .modal-header-simple h1 { font-size: 2rem; }
+            /* 1. Reduce overall page padding to save screen space */
+            body { padding: 1rem; }
+            
+            /* 2. Stack the Header & Center Text */
+            .header-top { flex-direction: column; align-items: center; text-align: center; gap: 1.5rem; }
+            .profile-left { flex-direction: column; align-items: center; gap: 1rem; }
+            .profile-right { width: 100%; flex-direction: row-reverse; justify-content: space-between; align-items: center; }
+            .profile-details { display: flex; flex-direction: column; align-items: center; }
+            
+            /* 3. Make Buttons Full Width */
+            .header-bottom { flex-direction: column; }
+            .header-bottom .btn { width: 100%; justify-content: center; margin-bottom: 5px; }
+            
+            /* 4. Fix Grids */
+            .main-grid { grid-template-columns: 1fr; }
+            .bottom-grid { grid-template-columns: 1fr; }
+            .project-grid-visual { grid-template-columns: 1fr; } 
+            
+            /* 5. Stack the Footer */
+            .footer-links-grid { grid-template-columns: 1fr; gap: 2rem; text-align: center; }
+            .footer-col { display: flex; flex-direction: column; align-items: center; }
+            .footer-col small { justify-content: center; }
+            
+            /* 6. Adjust Modal Sizing */
+            .modal-content-scrollable { padding: 50px 15px 80px 15px; }
+            .modal-header-simple h1 { font-size: 1.8rem; }
+            .close-btn-fixed { top: 10px; right: 10px; padding: 8px 15px; font-size: 0.85rem; }
+        }
+        
+        /* Extra fix for very small phones */
+        @media (max-width: 400px) {
+            .avatar { width: 80px; height: 80px; }
+            .profile-details h1 { font-size: 1.5rem; }
         }
     `;
 }
