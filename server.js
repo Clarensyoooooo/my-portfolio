@@ -3,8 +3,6 @@ const express = require('express');
 const mongoose = require('mongoose');
 const path = require('path');
 
-// (AdminJS imports REMOVED)
-
 const app = express();
 const port = process.env.PORT || 3000;
 
@@ -21,11 +19,12 @@ const ProjectSchema = new mongoose.Schema({
     image: String,
     link: String,
     tags: [String],
-    description: String, // <--- ADD THIS LINE BACK
+    description: String, 
+    isFeatured: { type: Boolean, default: false }, // NEW FIELD
     
     // Your dynamic blocks
     contentBlocks: [{
-        _id: false, // Optional: stops Mongoose from creating an _id for every single block sub-document
+        _id: false, 
         type: {
             type: String,
             enum: ['text', 'image'],
@@ -33,11 +32,11 @@ const ProjectSchema = new mongoose.Schema({
         },
         content: {
             type: String,
-            required: true // The main Text or Image URL
+            required: true 
         },
         caption: {
             type: String,
-            required: false // NEW Field: Only needed for images
+            required: false 
         }
     }]
 });
@@ -53,8 +52,7 @@ const CertificationSchema = new mongoose.Schema({
     issuer: String,
     year: String,
     description: String,
-    // NEW FIELDS
-    priority: { type: Number, default: 99 }, // Default to 99 so new unranked stuff goes to bottom
+    priority: { type: Number, default: 99 }, 
     credentialUrl: String
 });
 
@@ -91,8 +89,6 @@ function checkAuth(req, res, next) {
 // Allow express to parse form data
 app.use(express.urlencoded({ extended: true }));
 
-// (AdminJS Setup Block REMOVED)
-
 // --- 6. SERVE STATIC FILES ---
 app.use(express.static(path.join(__dirname, 'public')));
 
@@ -108,7 +104,7 @@ const section = "BA 4102";
 
 // --- ADMIN ROUTES ---
 
-// 1. ADMIN DASHBOARD (Lists all projects)
+// 1. ADMIN DASHBOARD
 app.get('/admin', checkAuth, async (req, res) => {
     const projects = await Project.find({});
     let html = `
@@ -138,7 +134,7 @@ app.get('/admin', checkAuth, async (req, res) => {
         ${projects.map(p => `
     <div class="card">
         <div>
-            <strong>${p.title}</strong><br>
+            <strong>${p.title}</strong> ${p.isFeatured ? '<span style="background:#F59E0B; color:white; padding:2px 6px; border-radius:4px; font-size:0.7rem; margin-left:8px;">★ Featured</span>' : ''}<br>
             <span style="color:#666; font-size:0.8rem">${p.subtitle}</span>
         </div>
         <div style="display:flex; gap:10px; align-items:center;">
@@ -184,11 +180,15 @@ app.get('/admin/add', checkAuth, (req, res) => {
                 <div class="mb-3"><label class="form-label">Live Link</label><input name="link" class="form-control"></div>
                 <div class="mb-3"><label class="form-label">Tags (comma separated)</label><input name="tags" class="form-control"></div>
 
+                <div class="form-check mb-3">
+                    <input class="form-check-input" type="checkbox" name="isFeatured" id="isFeatured">
+                    <label class="form-check-label fw-bold" for="isFeatured">★ Show in "Featured Projects" on Home Page</label>
+                </div>
+
                 <hr class="my-4">
                 
                 <h3>Project Content</h3>
-                <div id="contentBlocksContainer">
-                    </div>
+                <div id="contentBlocksContainer"></div>
 
                 <div class="my-3 text-center border p-3 rounded border-dashed">
                     <button type="button" id="addContentBlockBtn" class="btn btn-outline-primary">+ Add New Block</button>
@@ -260,7 +260,6 @@ app.get('/admin/edit/:id', checkAuth, async (req, res) => {
         const project = await Project.findOne({ id: req.params.id });
         if (!project) return res.status(404).send('Project not found');
 
-        // We convert the blocks to a JSON string so we can inject it into the frontend script
         const blocksJson = JSON.stringify(project.contentBlocks || []);
 
         res.send(`
@@ -295,6 +294,11 @@ app.get('/admin/edit/:id', checkAuth, async (req, res) => {
                     <div class="mb-3"><label class="form-label">Live Link</label><input name="link" class="form-control" value="${project.link}"></div>
                     <div class="mb-3"><label class="form-label">Tags</label><input name="tags" class="form-control" value="${project.tags.join(', ')}"></div>
 
+                    <div class="form-check mb-3">
+                        <input class="form-check-input" type="checkbox" name="isFeatured" id="isFeatured" ${project.isFeatured ? 'checked' : ''}>
+                        <label class="form-check-label fw-bold" for="isFeatured">★ Show in "Featured Projects" on Home Page</label>
+                    </div>
+
                     <hr class="my-4">
                     
                     <h3>Project Content</h3>
@@ -309,16 +313,13 @@ app.get('/admin/edit/:id', checkAuth, async (req, res) => {
             </div>
 
             <script>
-                // 1. INJECT EXISTING DATA FROM SERVER
                 const existingBlocks = ${blocksJson};
                 const container = document.getElementById('contentBlocksContainer');
 
-                // 2. FUNCTION TO CREATE A BLOCK (Used by both "Load" and "Add New")
                 function createBlockElement(index, data = null) {
                     const blockDiv = document.createElement('div');
                     blockDiv.className = 'content-block';
                     
-                    // Determine initial values
                     const isText = data ? data.type === 'text' : true;
                     const contentVal = data ? data.content : '';
                     const captionVal = data ? data.caption : '';
@@ -348,18 +349,15 @@ app.get('/admin/edit/:id', checkAuth, async (req, res) => {
                     return blockDiv;
                 }
 
-                // 3. LOAD EXISTING BLOCKS ON PAGE LOAD
                 existingBlocks.forEach((block, index) => {
                     container.appendChild(createBlockElement(index, block));
                 });
 
-                // 4. ADD NEW BLOCK BUTTON LISTENER
                 document.getElementById('addContentBlockBtn').addEventListener('click', function() {
                     const index = container.children.length;
                     container.appendChild(createBlockElement(index));
                 });
 
-                // 5. TOGGLE VISIBILITY FUNCTION
                 function toggleBlockInput(selectElement) {
                     const blockDiv = selectElement.closest('.content-block');
                     const textContainer = blockDiv.querySelector('.text-input');
@@ -393,11 +391,11 @@ app.post('/admin/edit/:id', checkAuth, async (req, res) => {
             description: req.body.description,
             image: req.body.image,
             link: req.body.link,
+            isFeatured: req.body.isFeatured === 'on', 
             tags: req.body.tags ? req.body.tags.split(',').map(t => t.trim()) : [],
             contentBlocks: contentBlocks
         };
 
-        // We use findOneAndUpdate to update the specific document
         await Project.findOneAndUpdate({ id: req.params.id }, updateData);
         
         res.redirect('/admin');
@@ -410,9 +408,7 @@ app.post('/admin/edit/:id', checkAuth, async (req, res) => {
 // 3. HANDLE DYNAMIC POST
 app.post('/admin/add', checkAuth, async (req, res) => {
     try {
-        // CHANGED: blocks -> contentBlocks
         const rawBlocks = req.body.contentBlocks || [];
-        
         const contentBlocks = Array.isArray(rawBlocks) ? rawBlocks : Object.values(rawBlocks);
 
         const newProject = new Project({
@@ -422,6 +418,7 @@ app.post('/admin/add', checkAuth, async (req, res) => {
             image: req.body.image,
             link: req.body.link,
             description: req.body.description, 
+            isFeatured: req.body.isFeatured === 'on', 
             tags: req.body.tags ? req.body.tags.split(',').map(t => t.trim()) : [],
             contentBlocks: contentBlocks
         });
@@ -475,8 +472,8 @@ app.get('/projects', async (req, res) => {
         const projects = await Project.find({});
         res.send(renderProjectsPage(projects));
     } catch (err) { 
-        console.error(err); // Prints to your server console
-        res.status(500).send("Error Details: " + err.message); // Shows you the error on screen
+        console.error(err);
+        res.status(500).send("Error Details: " + err.message); 
     }
 });
 
@@ -586,10 +583,10 @@ function renderHome(projects, experience, certifications, techStack) {
             </div>
 
             <div class="project-grid-visual">
-                ${generateProjectCards(projects ? projects.slice(0, 3) : [])} 
+                ${generateProjectCards(projects ? projects.filter(p => p.isFeatured) : [])} 
             </div>
 
-            ${generateProjectModals(projects || [])}
+            ${generateProjectModals(projects ? projects.filter(p => p.isFeatured) : [])}
 
             <div class="bottom-grid">
                 <div class="card">
@@ -743,7 +740,6 @@ function renderCertificationsPage(certifications) {
     const content = `
         <div class="card">
             ${certifications.map((cert, index) => {
-                // LOGIC: Only show button if URL exists
                 const verifyButton = cert.credentialUrl 
                     ? `<a href="${cert.credentialUrl}" target="_blank" class="btn-verify">
                          <i data-feather="external-link" size="14"></i> Verify Credential
@@ -772,7 +768,7 @@ function renderCertificationsPage(certifications) {
                 font-size: 0.75rem;
                 font-weight: 600;
                 color: var(--badge-blue);
-                background: rgba(37, 99, 235, 0.1); /* Subtle blue tint */
+                background: rgba(37, 99, 235, 0.1); 
                 padding: 4px 10px;
                 border-radius: 20px;
                 text-decoration: none;
@@ -789,73 +785,6 @@ function renderCertificationsPage(certifications) {
         </style>
     `;
     return renderInnerPage("Certifications", content);
-}
-
-function generateProjectModals(projects) {
-    if (!projects) return '';
-    return projects.map(p => `
-        <div id="modal-${p.id}" class="modal-overlay">
-            <button class="close-btn-fixed" onclick="closeModal(null, '${p.id}')">
-                <i data-feather="x"></i> Close
-            </button>
-
-            <div class="modal-content-scrollable">
-                <div class="modal-inner-container">
-                    
-                    <div class="content-block-media">
-                        <img src="${p.image}" alt="${p.title}" class="project-detail-img">
-                    </div>
-
-                    <div class="modal-header-simple">
-                        <h1>${p.title}</h1>
-                        <span class="subtitle">${p.subtitle}</span>
-                    </div>
-
-                    <div class="content-block-text" style="margin-top: 3rem;">
-                        <h3>Tech Stack</h3>
-                        <div class="tags-wrapper">
-                            ${p.tags.map(tag => `<span class="tag">${tag}</span>`).join('')}
-                        </div>
-                        <div class="modal-actions">
-                            <a href="${p.link}" target="_blank" class="btn btn-black">
-                                Visit Live Website <i data-feather="external-link"></i>
-                            </a>
-                        </div>
-                    </div>
-
-                    ${p.contentBlocks && p.contentBlocks.length > 0 ?
-                        p.contentBlocks.map(block => {
-                            // Safely handle content, falling back to empty string if undefined
-                            const content = block.content || block.value || ''; 
-                            
-                            if (block.type === 'text') {
-                                return `
-                                    <div class="content-block-text">
-                                        <p>${content.replace(/\n/g, '<br>')}</p>
-                                    </div>
-                                `;
-                            } else if (block.type === 'image') {
-                                const captionHtml = block.caption 
-                                    ? `<figcaption style="text-align:center; color:#666; font-size:0.9rem; margin-top:10px;">${block.caption}</figcaption>` 
-                                    : '';
-                                    
-                                return `
-                                    <div class="content-block-media" style="background:transparent; box-shadow:none;">
-                                        <figure style="margin:0;">
-                                            <img src="${content}" class="project-detail-img" style="border-radius:12px;">
-                                            ${captionHtml}
-                                        </figure>
-                                    </div>
-                                `;
-                            }
-                        }).join('')
-                        : '<p style="color:#666;">No additional details available.</p>'
-                    }
-
-                </div>
-            </div>
-        </div>
-    `).join('');
 }
 
 // --- SHARED HELPERS ---
@@ -913,10 +842,12 @@ function generateProjectModals(projects) {
 
                     ${p.contentBlocks && p.contentBlocks.length > 0 ?
                         p.contentBlocks.map(block => {
+                            const content = block.content || block.value || ''; 
+                            
                             if (block.type === 'text') {
                                 return `
                                     <div class="content-block-text">
-                                        <p>${block.content.replace(/\n/g, '<br>')}</p>
+                                        <p>${content.replace(/\n/g, '<br>')}</p>
                                     </div>
                                 `;
                             } else if (block.type === 'image') {
@@ -927,7 +858,7 @@ function generateProjectModals(projects) {
                                 return `
                                     <div class="content-block-media" style="background:transparent; box-shadow:none;">
                                         <figure style="margin:0;">
-                                            <img src="${block.content}" class="project-detail-img" style="border-radius:12px;">
+                                            <img src="${content}" class="project-detail-img" style="border-radius:12px;">
                                             ${captionHtml}
                                         </figure>
                                     </div>
@@ -1089,21 +1020,18 @@ function getCSS() {
 
         .modal-content-scrollable { width: 100%; min-height: 100vh; background: var(--bg-page); overflow-y: auto; padding: 60px 20px 100px 20px; }
         
-        /* FIXED: Added text-align left to container for global uniformity */
         .modal-inner-container { max-width: 800px; margin: 0 auto; text-align: left; }
 
         .modal-header-simple { text-align: left; margin-bottom: 2rem; margin-top: 2rem; }
         .modal-header-simple h1 { font-size: 2.5rem; margin-bottom: 0.5rem; line-height: 1.1; }
         .modal-header-simple .subtitle { font-size: 1.1rem; color: var(--text-muted); display: block; margin-bottom: 1.5rem; }
 
-        /* FIXED: Added action container specific styles */
         .modal-actions { margin-top: 1.5rem; }
         .modal-actions .btn { width: fit-content; display: inline-flex; }
 
         .content-block-media { margin-bottom: 3rem; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 20px rgba(0,0,0,0.05); background: var(--hover); }
         .project-detail-img { width: 100%; height: auto; display: block; }
 
-        /* FIXED: Removed padding from content block to align it with header */
         .content-block-text { margin-bottom: 3rem; padding: 0; }
         .content-block-text h3 { font-size: 1.25rem; font-weight: 700; margin-bottom: 1rem; color: var(--text-main); }
         .content-block-text p { font-size: 1.05rem; line-height: 1.7; color: var(--text-muted); margin-bottom: 1.5rem; }
@@ -1131,7 +1059,6 @@ function getScripts() {
             }
         }
 
-        // CHECK LOCAL STORAGE ON LOAD
         if(localStorage.getItem('theme') === 'dark') {
             body.classList.add('dark');
             if(toggle) toggle.innerHTML = '<i data-feather="sun"></i>';
