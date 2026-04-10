@@ -446,7 +446,7 @@ app.get('/', async (req, res) => {
     try {
         const [projects, experience, certifications, techStack] = await Promise.all([
             Project.find({}),
-            Experience.find({}), 
+            Experience.find({}).sort({ _id: -1 }), // <--- CHANGED THIS LINE
             Certification.find({}).sort({ priority: 1, year: -1 }),
             TechStack.find({})
         ]);
